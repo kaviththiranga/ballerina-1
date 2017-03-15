@@ -17,18 +17,24 @@
 */
 package org.ballerinalang.util.parser.antlr4;
 
+import org.antlr.v4.runtime.CommonToken;
+import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.ballerinalang.model.ImportPackage;
 import org.ballerinalang.model.NodeLocation;
+import org.ballerinalang.model.WhiteSpace;
 import org.ballerinalang.model.builder.BLangModelBuilder;
 import org.ballerinalang.util.parser.BallerinaListener;
 import org.ballerinalang.util.parser.BallerinaParser;
 import org.ballerinalang.util.parser.BallerinaParser.AnnotationContext;
 
 import java.nio.file.Path;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -60,6 +66,14 @@ public class BLangAntlr4Listener implements BallerinaListener {
     protected boolean isWorkerStarted = false;
     private boolean isTypeMapperStarted = false;
 
+    // token stream is required for listener to access hidden tokens
+    // such as whitespace/newlines while building model for composer use
+    private CommonTokenStream tokenStream;
+
+    // flag to indicate whether additional information
+    // required for composer needs to be captured
+    private boolean isComposerMode = false;
+
     public BLangAntlr4Listener(BLangModelBuilder modelBuilder) {
         this.modelBuilder = modelBuilder;
     }
@@ -73,6 +87,11 @@ public class BLangAntlr4Listener implements BallerinaListener {
         } else {
             this.packageDirPath = null;
         }
+    }
+
+    public BLangAntlr4Listener(CommonTokenStream tokenStream, BLangModelBuilder bLangModelBuilder) {
+        this.tokenStream = tokenStream;
+        this.modelBuilder = bLangModelBuilder;
     }
 
     @Override
@@ -93,7 +112,21 @@ public class BLangAntlr4Listener implements BallerinaListener {
             return;
         }
 
-        modelBuilder.addPackageDcl(ctx.packageName().getText());
+        // capture whitespace tokens if running in composer mode
+        if (this.isComposerMode) {
+            String[] tokens = new String[3];
+            // whitespace between 'package' keyword and package-name start
+            tokens[0] = this.getWhitespaceToRight((CommonToken) ctx.start);
+            // whitespace between package-name end and ending semicolon
+            tokens[1] = this.getWhitespaceToRight((CommonToken) ctx.packageName().stop);
+            // whitespace between ending semicolon and next token start
+            tokens[2] = this.getWhitespaceToRight((CommonToken) ctx.stop);
+
+            //modelBuilder.addPackageDcl(ctx.packageName().getText());
+        } else {
+            modelBuilder.addPackageDcl(ctx.packageName().getText());
+        }
+
     }
 
     @Override
@@ -108,7 +141,21 @@ public class BLangAntlr4Listener implements BallerinaListener {
 
         String pkgPath = ctx.packageName().getText();
         String asPkgName = (ctx.Identifier() != null) ? ctx.Identifier().getText() : null;
-        modelBuilder.addImportPackage(getCurrentLocation(ctx), pkgPath, asPkgName);
+
+        // capture whitespace tokens if running in composer mode
+        if (this.isComposerMode) {
+            String[] tokens = new String[5];
+            // whitespace between 'import' keyword and package-name start
+            tokens[0] = this.getWhitespaceToRight((CommonToken) ctx.start);
+            // whitespace between package-name end and semicolon
+            tokens[1] = this.getWhitespaceToRight((CommonToken) ctx.packageName().stop);
+            // whitespace between semicolon and next token start
+            tokens[2] = this.getWhitespaceToRight((CommonToken) ctx.stop);
+
+            //modelBuilder.addImportPackage(getCurrentLocation(ctx), new WhiteSpace(tokens), pkgPath, asPkgName);
+        } else {
+            modelBuilder.addImportPackage(getCurrentLocation(ctx), pkgPath, asPkgName);
+        }
     }
 
     @Override
@@ -1671,5 +1718,35 @@ public class BLangAntlr4Listener implements BallerinaListener {
         // Here childCount is always an odd number.
         // noOfArguments = childCount mod 2 + 1
         return childCountExprList / 2 + 1;
+    }
+
+    protected String getWhitespaceToRight(CommonToken token) {
+        StringBuilder whitespaceBuilder = new StringBuilder();
+        if (this.tokenStream != null) {
+            List<Token> hiddenTokensToRight = this.tokenStream.getHiddenTokensToRight(token.getTokenIndex(), Token.HIDDEN_CHANNEL);
+            for (Token next : hiddenTokensToRight) {
+                whitespaceBuilder.append(next.getText());
+            }
+        }
+        return whitespaceBuilder.toString();
+    }
+
+    protected String getWhitespaceToLeft(CommonToken token) {
+        StringBuilder whitespaceBuilder = new StringBuilder();
+        if (this.tokenStream != null) {
+            List<Token> hiddenTokensToRight = this.tokenStream.getHiddenTokensToLeft(token.getTokenIndex(), Token.HIDDEN_CHANNEL);
+            for (Token next : hiddenTokensToRight) {
+                whitespaceBuilder.append(next.getText());
+            }
+        }
+        return whitespaceBuilder.toString();
+    }
+
+    public boolean isComposerMode() {
+        return isComposerMode;
+    }
+
+    public void setComposerMode(boolean isComposerMode) {
+        this.isComposerMode = isComposerMode;
     }
 }

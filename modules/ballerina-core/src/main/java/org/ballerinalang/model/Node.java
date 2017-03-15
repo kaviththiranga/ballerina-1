@@ -39,4 +39,13 @@ public interface Node {
      * @return location of this node
      */
     NodeLocation getNodeLocation();
+
+    /**
+     * Returns the whitespace associated with this node.
+     * <p>
+     * {@link WhiteSpace} includes all whitespaces associated with this node
+     *
+     * @return the whitespace associated with this node
+     */
+    WhiteSpace getWhitespace();
 }
