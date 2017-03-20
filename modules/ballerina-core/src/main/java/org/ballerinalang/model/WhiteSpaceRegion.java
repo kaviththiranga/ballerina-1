@@ -17,24 +17,34 @@
 package org.ballerinalang.model;
 
 /**
- * {@code WhiteSpace} represents the whitespace tokens associated with a particular language construct in the source file.
+ * {@code WhiteSpaceRegion} represents a whitespace region associated with a particular language construct in the source file.
  *
  * @since 0.8.4
  */
-public class WhiteSpace {
+public class WhiteSpaceRegion {
 
-    public String[] getTokens() {
-        return tokens;
+    protected String whiteSpace;
+    protected String regionId;
+
+    public WhiteSpaceRegion(String whiteSpace, String regionId) {
+        this.whiteSpace = whiteSpace;
+        this.regionId = regionId;
     }
 
-    public WhiteSpace(String[] regions) {
-        this.tokens = regions;
+    public String getWhiteSpace() {
+        return whiteSpace;
     }
 
-    public void setTokens(String[] tokens) {
-        this.tokens = tokens;
+    public void setWhiteSpace(String whiteSpace) {
+        this.whiteSpace = whiteSpace;
     }
 
-    protected String[] tokens;
+    public String getRegionId() {
+        return regionId;
+    }
+
+    public void setRegionId(String regionId) {
+        this.regionId = regionId;
+    }
 
 }

@@ -25,16 +25,13 @@ import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.ballerinalang.model.ImportPackage;
 import org.ballerinalang.model.NodeLocation;
-import org.ballerinalang.model.WhiteSpace;
 import org.ballerinalang.model.builder.BLangModelBuilder;
 import org.ballerinalang.util.parser.BallerinaListener;
 import org.ballerinalang.util.parser.BallerinaParser;
 import org.ballerinalang.util.parser.BallerinaParser.AnnotationContext;
 
 import java.nio.file.Path;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -66,13 +63,13 @@ public class BLangAntlr4Listener implements BallerinaListener {
     protected boolean isWorkerStarted = false;
     private boolean isTypeMapperStarted = false;
 
-    // token stream is required for listener to access hidden tokens
+    // token stream is required for listener to access hidden whiteSpace
     // such as whitespace/newlines while building model for composer use
     private CommonTokenStream tokenStream;
 
     // flag to indicate whether additional information
-    // required for composer needs to be captured
-    private boolean isComposerMode = false;
+    // from source needs to be captured, eg: whitespace
+    private boolean isVerboseMode = false;
 
     public BLangAntlr4Listener(BLangModelBuilder modelBuilder) {
         this.modelBuilder = modelBuilder;
@@ -96,6 +93,9 @@ public class BLangAntlr4Listener implements BallerinaListener {
 
     @Override
     public void enterCompilationUnit(BallerinaParser.CompilationUnitContext ctx) {
+        if(this.isVerboseMode){
+
+        }
     }
 
     @Override
@@ -112,8 +112,8 @@ public class BLangAntlr4Listener implements BallerinaListener {
             return;
         }
 
-        // capture whitespace tokens if running in composer mode
-        if (this.isComposerMode) {
+        // capture whitespace whiteSpace if running in verbose mode
+        if (this.isVerboseMode) {
             String[] tokens = new String[3];
             // whitespace between 'package' keyword and package-name start
             tokens[0] = this.getWhitespaceToRight((CommonToken) ctx.start);
@@ -142,8 +142,8 @@ public class BLangAntlr4Listener implements BallerinaListener {
         String pkgPath = ctx.packageName().getText();
         String asPkgName = (ctx.Identifier() != null) ? ctx.Identifier().getText() : null;
 
-        // capture whitespace tokens if running in composer mode
-        if (this.isComposerMode) {
+        // capture whitespace whiteSpace if running in verbose mode
+        if (this.isVerboseMode) {
             String[] tokens = new String[5];
             // whitespace between 'import' keyword and package-name start
             tokens[0] = this.getWhitespaceToRight((CommonToken) ctx.start);
@@ -152,7 +152,7 @@ public class BLangAntlr4Listener implements BallerinaListener {
             // whitespace between semicolon and next token start
             tokens[2] = this.getWhitespaceToRight((CommonToken) ctx.stop);
 
-            //modelBuilder.addImportPackage(getCurrentLocation(ctx), new WhiteSpace(tokens), pkgPath, asPkgName);
+            //modelBuilder.addImportPackage(getCurrentLocation(ctx), new WhiteSpaceRegion(whiteSpace), pkgPath, asPkgName);
         } else {
             modelBuilder.addImportPackage(getCurrentLocation(ctx), pkgPath, asPkgName);
         }
@@ -1742,11 +1742,11 @@ public class BLangAntlr4Listener implements BallerinaListener {
         return whitespaceBuilder.toString();
     }
 
-    public boolean isComposerMode() {
-        return isComposerMode;
+    public boolean isVerboseMode() {
+        return isVerboseMode;
     }
 
-    public void setComposerMode(boolean isComposerMode) {
-        this.isComposerMode = isComposerMode;
+    public void setVerboseMode(boolean isVerboseMode) {
+        this.isVerboseMode = isVerboseMode;
     }
 }

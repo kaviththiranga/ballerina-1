@@ -41,11 +41,14 @@ public interface Node {
     NodeLocation getNodeLocation();
 
     /**
-     * Returns the whitespace associated with this node.
-     * <p>
-     * {@link WhiteSpace} includes all whitespaces associated with this node
-     *
-     * @return the whitespace associated with this node
+     * Get information about whitespace associated with this particular node in source text
+     * @return whitespace information
      */
-    WhiteSpace getWhitespace();
+    WhiteSpaceDescriptor getWhiteSpaceDescriptor();
+
+    /**
+     * Set information about whitespace associated with this particular node in source text
+     * @param whiteSpaceDescriptor whitespace descriptor for the node
+     */
+    void setWhiteSpaceDescriptor(WhiteSpaceDescriptor whiteSpaceDescriptor);
 }
