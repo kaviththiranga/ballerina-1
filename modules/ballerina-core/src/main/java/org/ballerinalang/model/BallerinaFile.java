@@ -38,22 +38,34 @@ import java.util.Map;
  * @since 0.8.0
  */
 public class BallerinaFile implements Node {
+
+    /**
+     * Region ids for the possible whitespace regions within the node
+     */
+    public final static int WS_REGION_FILE_START_TO_FIRST_TOKEN = 1;
+    public final static int WS_REGION_PACKAGE_KEYWORD_TO_PACKAGE_NAME_START = 2;
+    public final static int WS_REGION_PACKAGE_NAME_END_TO_SEMICOLON = 3;
+    public final static int WS_REGION_PACKAGE_DEC_END_TO_NEXT_TOKEN = 4;
+
     private String pkgName = null;
     private String bFileName;
 
     private ImportPackage[] importPkgs;
     private CompilationUnit[] compilationUnits;
+    private WhiteSpaceDescriptor whiteSpaceDescriptor;
 
     private BallerinaFile(
             String pkgName,
             String bFileName,
             ImportPackage[] importPkgs,
-            CompilationUnit[] compilationUnits) {
+            CompilationUnit[] compilationUnits,
+            WhiteSpaceDescriptor whiteSpaceDescriptor) {
 
         this.pkgName = pkgName;
         this.bFileName = bFileName;
         this.importPkgs = importPkgs;
         this.compilationUnits = compilationUnits;
+        this.whiteSpaceDescriptor = whiteSpaceDescriptor;
     }
 
     /**
@@ -153,6 +165,14 @@ public class BallerinaFile implements Node {
         return null;
     }
 
+    public WhiteSpaceDescriptor getWhiteSpaceDescriptor() {
+        return whiteSpaceDescriptor;
+    }
+
+    public void setWhiteSpaceDescriptor(WhiteSpaceDescriptor whiteSpaceDescriptor) {
+        this.whiteSpaceDescriptor = whiteSpaceDescriptor;
+    }
+
     /**
      * Builds a BFile node which represents physical ballerina source file.
      *
@@ -165,6 +185,7 @@ public class BallerinaFile implements Node {
         private BLangPackage.PackageBuilder packageBuilder;
         private List<ImportPackage> importPkgList = new ArrayList<>();
         private List<CompilationUnit> compilationUnitList = new ArrayList<>();
+        private WhiteSpaceDescriptor whiteSpaceDescriptor;
 
         public BFileBuilder(String bFileName, BLangPackage.PackageBuilder packageBuilder) {
             this.bFileName = bFileName;
@@ -220,7 +241,15 @@ public class BallerinaFile implements Node {
                     pkgName,
                     bFileName,
                     importPkgList.toArray(new ImportPackage[importPkgList.size()]),
-                    compilationUnitList.toArray(new CompilationUnit[compilationUnitList.size()]));
+                    compilationUnitList.toArray(new CompilationUnit[compilationUnitList.size()]),
+                    whiteSpaceDescriptor);
+        }
+
+        public void addWhiteSpaceRegion(int regionId, String whiteSpace) {
+            if(this.whiteSpaceDescriptor == null){
+                this.whiteSpaceDescriptor = new WhiteSpaceDescriptor();
+            }
+            this.whiteSpaceDescriptor.addWhitespaceRegion(regionId, whiteSpace);
         }
     }
 }

@@ -42,7 +42,7 @@ public interface Node {
 
     /**
      * Get information about whitespace associated with this particular node in source text
-     * @return whitespace information
+     * @return whitespace descriptor
      */
     WhiteSpaceDescriptor getWhiteSpaceDescriptor();
 

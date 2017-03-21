@@ -24,9 +24,9 @@ package org.ballerinalang.model;
 public class WhiteSpaceRegion {
 
     protected String whiteSpace;
-    protected String regionId;
+    protected int regionId;
 
-    public WhiteSpaceRegion(String whiteSpace, String regionId) {
+    public WhiteSpaceRegion(int regionId, String whiteSpace) {
         this.whiteSpace = whiteSpace;
         this.regionId = regionId;
     }
@@ -39,11 +39,11 @@ public class WhiteSpaceRegion {
         this.whiteSpace = whiteSpace;
     }
 
-    public String getRegionId() {
+    public int getRegionId() {
         return regionId;
     }
 
-    public void setRegionId(String regionId) {
+    public void setRegionId(int regionId) {
         this.regionId = regionId;
     }
 

@@ -25,7 +25,9 @@ import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.ballerinalang.model.BallerinaFile;
 import org.ballerinalang.model.NodeLocation;
+import org.ballerinalang.model.WhiteSpaceDescriptor;
 import org.ballerinalang.model.builder.BLangModelBuilder;
 import org.ballerinalang.util.parser.BallerinaListener;
 import org.ballerinalang.util.parser.BallerinaParser;
@@ -41,6 +43,9 @@ import java.util.List;
  * @since 0.8.0
  */
 public class BLangAntlr4Listener implements BallerinaListener {
+
+    public static final int FIRST_TOKEN_INDEX = 1;
+
     protected String fileName;
     protected String packageDirPath;
     protected static final String PUBLIC = "public";
@@ -94,7 +99,9 @@ public class BLangAntlr4Listener implements BallerinaListener {
     @Override
     public void enterCompilationUnit(BallerinaParser.CompilationUnitContext ctx) {
         if(this.isVerboseMode){
-
+            // get whitespace from file start to first token
+            String startingWhiteSpaceOfFile = getWhitespaceToLeft((CommonToken) tokenStream.get(FIRST_TOKEN_INDEX));
+            modelBuilder.setStartingWhiteSpace(startingWhiteSpaceOfFile);
         }
     }
 
@@ -112,20 +119,23 @@ public class BLangAntlr4Listener implements BallerinaListener {
             return;
         }
 
-        // capture whitespace whiteSpace if running in verbose mode
+        // capture whitespace if running in verbose mode
+        // NOTE: using BallerinaFile node to keep whitespace inside package declaration as there
+        // is no separate model for package declaration node in AST
         if (this.isVerboseMode) {
-            String[] tokens = new String[3];
+            BallerinaFile.BFileBuilder bFileBuilder = modelBuilder.getbFileBuilder();
             // whitespace between 'package' keyword and package-name start
-            tokens[0] = this.getWhitespaceToRight((CommonToken) ctx.start);
+            bFileBuilder.addWhiteSpaceRegion(BallerinaFile.WS_REGION_PACKAGE_KEYWORD_TO_PACKAGE_NAME_START,
+                    this.getWhitespaceToRight((CommonToken) ctx.start));
             // whitespace between package-name end and ending semicolon
-            tokens[1] = this.getWhitespaceToRight((CommonToken) ctx.packageName().stop);
+            bFileBuilder.addWhiteSpaceRegion(BallerinaFile.WS_REGION_PACKAGE_NAME_END_TO_SEMICOLON,
+                    this.getWhitespaceToRight((CommonToken) ctx.packageName().stop));
             // whitespace between ending semicolon and next token start
-            tokens[2] = this.getWhitespaceToRight((CommonToken) ctx.stop);
-
-            //modelBuilder.addPackageDcl(ctx.packageName().getText());
-        } else {
-            modelBuilder.addPackageDcl(ctx.packageName().getText());
+            bFileBuilder.addWhiteSpaceRegion(BallerinaFile.WS_REGION_PACKAGE_DEC_END_TO_NEXT_TOKEN,
+                    this.getWhitespaceToRight((CommonToken) ctx.stop));
         }
+
+        modelBuilder.addPackageDcl(ctx.packageName().getText());
 
     }
 
@@ -142,8 +152,12 @@ public class BLangAntlr4Listener implements BallerinaListener {
         String pkgPath = ctx.packageName().getText();
         String asPkgName = (ctx.Identifier() != null) ? ctx.Identifier().getText() : null;
 
+        modelBuilder.addImportPackage(getCurrentLocation(ctx), pkgPath, asPkgName);
+
         // capture whitespace whiteSpace if running in verbose mode
         if (this.isVerboseMode) {
+            WhiteSpaceDescriptor whiteSpaceDescriptor = new WhiteSpaceDescriptor();
+
             String[] tokens = new String[5];
             // whitespace between 'import' keyword and package-name start
             tokens[0] = this.getWhitespaceToRight((CommonToken) ctx.start);
@@ -151,10 +165,6 @@ public class BLangAntlr4Listener implements BallerinaListener {
             tokens[1] = this.getWhitespaceToRight((CommonToken) ctx.packageName().stop);
             // whitespace between semicolon and next token start
             tokens[2] = this.getWhitespaceToRight((CommonToken) ctx.stop);
-
-            //modelBuilder.addImportPackage(getCurrentLocation(ctx), new WhiteSpaceRegion(whiteSpace), pkgPath, asPkgName);
-        } else {
-            modelBuilder.addImportPackage(getCurrentLocation(ctx), pkgPath, asPkgName);
         }
     }
 

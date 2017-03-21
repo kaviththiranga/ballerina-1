@@ -35,6 +35,7 @@ import org.ballerinalang.model.StructDef;
 import org.ballerinalang.model.SymbolName;
 import org.ballerinalang.model.SymbolScope;
 import org.ballerinalang.model.VariableDef;
+import org.ballerinalang.model.WhiteSpaceDescriptor;
 import org.ballerinalang.model.Worker;
 import org.ballerinalang.model.expressions.ActionInvocationExpr;
 import org.ballerinalang.model.expressions.AddExpression;
@@ -1426,6 +1427,9 @@ public class BLangModelBuilder {
                 + ":" + location.getLineNumber());
     }
 
+    public void setStartingWhiteSpace(String whiteSpace){
+        bFileBuilder.addWhiteSpaceRegion(BallerinaFile.WS_REGION_FILE_START_TO_FIRST_TOKEN, whiteSpace);
+    }
 
     // Private methods
 
@@ -1515,6 +1519,10 @@ public class BLangModelBuilder {
         StructFieldAccessExpr parentExpr = new StructFieldAccessExpr(location, parent, fieldExpr);
 
         exprStack.push(parentExpr);
+    }
+
+    public BallerinaFile.BFileBuilder getbFileBuilder() {
+        return bFileBuilder;
     }
 
     protected void startRefTypeInitExpr() {

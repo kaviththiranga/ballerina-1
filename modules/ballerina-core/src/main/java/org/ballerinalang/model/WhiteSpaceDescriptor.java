@@ -26,23 +26,21 @@ import java.util.Map;
  */
 public class WhiteSpaceDescriptor {
 
-    protected Map<String, WhiteSpaceRegion> whiteSpaceRegions;
+    protected Map<Integer, WhiteSpaceRegion> whiteSpaceRegions;
 
     public WhiteSpaceDescriptor() {
         this.whiteSpaceRegions = new HashMap<>();
     }
 
-    public void addWhitespaceRegion(String regionId, String whiteSpace){
-        if (regionId != null){
-            this.whiteSpaceRegions.put(regionId, new WhiteSpaceRegion(regionId, whiteSpace));
-        }
+    public void addWhitespaceRegion(int regionId, String whiteSpace){
+       this.whiteSpaceRegions.put(regionId, new WhiteSpaceRegion(regionId, whiteSpace));
     }
 
-    public Map<String, WhiteSpaceRegion> getWhiteSpaceRegions() {
+    public Map<Integer, WhiteSpaceRegion> getWhiteSpaceRegions() {
         return whiteSpaceRegions;
     }
 
-    public void setWhiteSpaceRegions(Map<String, WhiteSpaceRegion> whiteSpaceRegions) {
+    public void setWhiteSpaceRegions(Map<Integer, WhiteSpaceRegion> whiteSpaceRegions) {
         this.whiteSpaceRegions = whiteSpaceRegions;
     }
 }
