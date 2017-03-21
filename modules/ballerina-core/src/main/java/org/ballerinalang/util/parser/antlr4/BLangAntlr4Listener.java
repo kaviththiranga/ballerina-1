@@ -26,6 +26,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.ballerinalang.model.BallerinaFile;
+import org.ballerinalang.model.ImportPackage;
 import org.ballerinalang.model.NodeLocation;
 import org.ballerinalang.model.WhiteSpaceDescriptor;
 import org.ballerinalang.model.builder.BLangModelBuilder;
@@ -152,19 +153,25 @@ public class BLangAntlr4Listener implements BallerinaListener {
         String pkgPath = ctx.packageName().getText();
         String asPkgName = (ctx.Identifier() != null) ? ctx.Identifier().getText() : null;
 
-        modelBuilder.addImportPackage(getCurrentLocation(ctx), pkgPath, asPkgName);
+        ImportPackage importPackage = modelBuilder.addImportPackage(getCurrentLocation(ctx), pkgPath, asPkgName);
 
         // capture whitespace whiteSpace if running in verbose mode
         if (this.isVerboseMode) {
             WhiteSpaceDescriptor whiteSpaceDescriptor = new WhiteSpaceDescriptor();
 
-            String[] tokens = new String[5];
             // whitespace between 'import' keyword and package-name start
-            tokens[0] = this.getWhitespaceToRight((CommonToken) ctx.start);
+            whiteSpaceDescriptor.addWhitespaceRegion(ImportPackage.WS_REGION_IMPORT_KEYWORD_TO_PACKAGE_NAME_START,
+                    this.getWhitespaceToRight((CommonToken) ctx.start));
+
             // whitespace between package-name end and semicolon
-            tokens[1] = this.getWhitespaceToRight((CommonToken) ctx.packageName().stop);
+            whiteSpaceDescriptor.addWhitespaceRegion(ImportPackage.WS_REGION_PACKAGE_NAME_END_TO_SEMICOLON,
+                    this.getWhitespaceToRight((CommonToken) ctx.packageName().stop));
+
             // whitespace between semicolon and next token start
-            tokens[2] = this.getWhitespaceToRight((CommonToken) ctx.stop);
+            whiteSpaceDescriptor.addWhitespaceRegion(ImportPackage.WS_REGION_IMPORT_DEC_END_TO_NEXT_TOKEN,
+                    this.getWhitespaceToRight((CommonToken) ctx.stop));
+            
+            importPackage.setWhiteSpaceDescriptor(whiteSpaceDescriptor);
         }
     }
 

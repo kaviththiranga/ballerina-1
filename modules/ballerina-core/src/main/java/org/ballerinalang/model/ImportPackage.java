@@ -35,6 +35,14 @@ package org.ballerinalang.model;
  * @since 0.8.0
  */
 public class ImportPackage implements Node {
+
+    /**
+     * Region ids for the possible whitespace regions within the node
+     */
+    public final static int WS_REGION_IMPORT_KEYWORD_TO_PACKAGE_NAME_START = 1;
+    public final static int WS_REGION_PACKAGE_NAME_END_TO_SEMICOLON = 2;
+    public final static int WS_REGION_IMPORT_DEC_END_TO_NEXT_TOKEN = 3;
+
     protected NodeLocation location;
     protected WhiteSpaceDescriptor whiteSpaceDescriptor;
     private String path;

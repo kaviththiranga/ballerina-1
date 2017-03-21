@@ -207,7 +207,7 @@ public class BLangModelBuilder {
         bFileBuilder.setPackagePath(currentPackagePath);
     }
 
-    public void addImportPackage(NodeLocation location, String pkgPath, String asPkgName) {
+    public ImportPackage addImportPackage(NodeLocation location, String pkgPath, String asPkgName) {
         ImportPackage importPkg;
         if (asPkgName != null) {
             importPkg = new ImportPackage(location, pkgPath, asPkgName);
@@ -223,6 +223,7 @@ public class BLangModelBuilder {
 
         bFileBuilder.addImportPackage(importPkg);
         importPkgMap.put(importPkg.getName(), importPkg);
+        return importPkg;
     }
 
 
