@@ -931,7 +931,7 @@ public class BLangModelBuilder {
         annotationListStack.push(new ArrayList<>());
     }
 
-    public void createService(NodeLocation location, String name) {
+    public Service createService(NodeLocation location, String name) {
         currentCUGroupBuilder.setNodeLocation(location);
         currentCUGroupBuilder.setName(name);
         currentCUGroupBuilder.setPkgPath(currentPackagePath);
@@ -944,6 +944,7 @@ public class BLangModelBuilder {
 
         currentScope = service.getEnclosingScope();
         currentCUGroupBuilder = null;
+        return service;
     }
 
     public void createConnector(NodeLocation location, String name, boolean isNative) {

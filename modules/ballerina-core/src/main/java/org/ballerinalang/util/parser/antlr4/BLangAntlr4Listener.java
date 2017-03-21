@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.ballerinalang.model.BallerinaFile;
 import org.ballerinalang.model.ImportPackage;
 import org.ballerinalang.model.NodeLocation;
+import org.ballerinalang.model.Service;
 import org.ballerinalang.model.WhiteSpaceDescriptor;
 import org.ballerinalang.model.builder.BLangModelBuilder;
 import org.ballerinalang.model.builder.BLangVerboseModelBuilder;
@@ -102,8 +103,8 @@ public class BLangAntlr4Listener implements BallerinaListener {
     public void enterCompilationUnit(BallerinaParser.CompilationUnitContext ctx) {
         if(this.isVerboseMode){
             // get whitespace from file start to first token
-            String startingWhiteSpaceOfFile = getWhitespaceToLeft((CommonToken) tokenStream.get(FIRST_TOKEN_INDEX));
-            ((BLangVerboseModelBuilder) modelBuilder).setStartingWhiteSpace(startingWhiteSpaceOfFile);
+            String startingWhiteSpaceOfFile = getWhitespaceToLeft(FIRST_TOKEN_INDEX);
+            ((BLangVerboseModelBuilder) modelBuilder).setBFileStartingWhiteSpace(startingWhiteSpaceOfFile);
         }
     }
 
@@ -125,16 +126,16 @@ public class BLangAntlr4Listener implements BallerinaListener {
         // NOTE: using BallerinaFile node to keep whitespace inside package declaration as there
         // is no separate model for package declaration node in AST
         if (this.isVerboseMode) {
-            BallerinaFile.BFileBuilder bFileBuilder = ((BLangVerboseModelBuilder) modelBuilder).getbFileBuilder();
+            BallerinaFile.BFileBuilder bFileBuilder = ((BLangVerboseModelBuilder) modelBuilder).getBFileBuilder();
             // whitespace between 'package' keyword and package-name start
             bFileBuilder.addWhiteSpaceRegion(BallerinaFile.WS_REGION_PACKAGE_KEYWORD_TO_PACKAGE_NAME_START,
-                    this.getWhitespaceToRight((CommonToken) ctx.start));
+                    this.getWhitespaceToRight(ctx.start.getTokenIndex()));
             // whitespace between package-name end and ending semicolon
             bFileBuilder.addWhiteSpaceRegion(BallerinaFile.WS_REGION_PACKAGE_NAME_END_TO_SEMICOLON,
-                    this.getWhitespaceToRight((CommonToken) ctx.packageName().stop));
+                    this.getWhitespaceToRight(ctx.packageName().stop.getTokenIndex()));
             // whitespace between ending semicolon and next token start
             bFileBuilder.addWhiteSpaceRegion(BallerinaFile.WS_REGION_PACKAGE_DEC_END_TO_NEXT_TOKEN,
-                    this.getWhitespaceToRight((CommonToken) ctx.stop));
+                    this.getWhitespaceToRight(ctx.stop.getTokenIndex()));
         }
 
         modelBuilder.addPackageDcl(ctx.packageName().getText());
@@ -153,26 +154,28 @@ public class BLangAntlr4Listener implements BallerinaListener {
 
         String pkgPath = ctx.packageName().getText();
         String asPkgName = (ctx.Identifier() != null) ? ctx.Identifier().getText() : null;
-
-        ImportPackage importPackage = modelBuilder.addImportPackage(getCurrentLocation(ctx), pkgPath, asPkgName);
+        NodeLocation currentLocation = getCurrentLocation(ctx);
 
         // capture whitespace whiteSpace if running in verbose mode
-        if (this.isVerboseMode) {
+        if (this.isVerboseMode()) {
             WhiteSpaceDescriptor whiteSpaceDescriptor = new WhiteSpaceDescriptor();
 
             // whitespace between 'import' keyword and package-name start
             whiteSpaceDescriptor.addWhitespaceRegion(ImportPackage.WS_REGION_IMPORT_KEYWORD_TO_PACKAGE_NAME_START,
-                    this.getWhitespaceToRight((CommonToken) ctx.start));
+                    this.getWhitespaceToRight(ctx.start.getTokenIndex()));
 
             // whitespace between package-name end and semicolon
             whiteSpaceDescriptor.addWhitespaceRegion(ImportPackage.WS_REGION_PACKAGE_NAME_END_TO_SEMICOLON,
-                    this.getWhitespaceToRight((CommonToken) ctx.packageName().stop));
+                    this.getWhitespaceToRight(ctx.packageName().stop.getTokenIndex()));
 
             // whitespace between semicolon and next token start
             whiteSpaceDescriptor.addWhitespaceRegion(ImportPackage.WS_REGION_IMPORT_DEC_END_TO_NEXT_TOKEN,
-                    this.getWhitespaceToRight((CommonToken) ctx.stop));
+                    this.getWhitespaceToRight(ctx.stop.getTokenIndex()));
 
-            importPackage.setWhiteSpaceDescriptor(whiteSpaceDescriptor);
+            ((BLangVerboseModelBuilder)modelBuilder).addImportPackage(currentLocation, whiteSpaceDescriptor,
+                    pkgPath, asPkgName);
+        } else {
+            modelBuilder.addImportPackage(currentLocation, pkgPath, asPkgName);
         }
     }
 
@@ -183,8 +186,6 @@ public class BLangAntlr4Listener implements BallerinaListener {
         }
 
         modelBuilder.startServiceDef(getCurrentLocation(ctx));
-
-
     }
 
     @Override
@@ -197,7 +198,25 @@ public class BLangAntlr4Listener implements BallerinaListener {
                 int lineNo = identifier.getSymbol().getLine();
                 NodeLocation serviceLocation = new NodeLocation(fileName, lineNo);
 
-                modelBuilder.createService(serviceLocation, identifier.getText());
+                if(this.isVerboseMode()){
+                    WhiteSpaceDescriptor whiteSpaceDescriptor = new WhiteSpaceDescriptor();
+                    // capture whitespace between service keyword and identifier
+                    whiteSpaceDescriptor.addWhitespaceRegion(Service.WS_REGION_SERVICE_KEYWORD_TO_IDENTIFIER_START,
+                            getWhitespaceToRight(ctx.start.getTokenIndex()));
+
+                    // capture whitespace between identifier end and service body start
+                    whiteSpaceDescriptor.addWhitespaceRegion(Service.WS_REGION_IDENTIFIER_END_TO_BODY_START,
+                            getWhitespaceToRight(identifier.getSymbol().getTokenIndex()));
+
+                    // capture whitespace between service body end and next token start
+                    whiteSpaceDescriptor.addWhitespaceRegion(Service.WS_REGION_BODY_END_TO_NEXT_TOKEN,
+                            getWhitespaceToRight(ctx.stop.getTokenIndex()));
+
+                    ((BLangVerboseModelBuilder) modelBuilder).createService(serviceLocation, whiteSpaceDescriptor,
+                            identifier.getText());
+                } else {
+                    modelBuilder.createService(serviceLocation, identifier.getText());
+                }
             }
         }
     }
@@ -1740,23 +1759,27 @@ public class BLangAntlr4Listener implements BallerinaListener {
         return childCountExprList / 2 + 1;
     }
 
-    protected String getWhitespaceToRight(CommonToken token) {
+    protected String getWhitespaceToRight(int tokenIndex) {
         StringBuilder whitespaceBuilder = new StringBuilder();
         if (this.tokenStream != null) {
-            List<Token> hiddenTokensToRight = this.tokenStream.getHiddenTokensToRight(token.getTokenIndex(), Token.HIDDEN_CHANNEL);
-            for (Token next : hiddenTokensToRight) {
-                whitespaceBuilder.append(next.getText());
+            List<Token> hiddenTokensToRight = this.tokenStream.getHiddenTokensToRight(tokenIndex, Token.HIDDEN_CHANNEL);
+            if (hiddenTokensToRight != null) {
+                for (Token next : hiddenTokensToRight) {
+                    whitespaceBuilder.append(next.getText());
+                }
             }
         }
         return whitespaceBuilder.toString();
     }
 
-    protected String getWhitespaceToLeft(CommonToken token) {
+    protected String getWhitespaceToLeft(int tokenIndex) {
         StringBuilder whitespaceBuilder = new StringBuilder();
         if (this.tokenStream != null) {
-            List<Token> hiddenTokensToRight = this.tokenStream.getHiddenTokensToLeft(token.getTokenIndex(), Token.HIDDEN_CHANNEL);
-            for (Token next : hiddenTokensToRight) {
-                whitespaceBuilder.append(next.getText());
+            List<Token> hiddenTokensToRight = this.tokenStream.getHiddenTokensToLeft(tokenIndex, Token.HIDDEN_CHANNEL);
+            if (hiddenTokensToRight != null) {
+                for (Token next : hiddenTokensToRight) {
+                    whitespaceBuilder.append(next.getText());
+                }
             }
         }
         return whitespaceBuilder.toString();

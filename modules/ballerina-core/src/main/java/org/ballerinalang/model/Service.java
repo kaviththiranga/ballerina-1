@@ -42,7 +42,15 @@ import java.util.Map;
  * @since 0.8.0
  */
 public class Service implements CompilationUnit, SymbolScope, BLangSymbol {
+    /**
+     * Region ids for the possible whitespace regions within the node
+     */
+    public static final int WS_REGION_SERVICE_KEYWORD_TO_IDENTIFIER_START = 1;
+    public static final int WS_REGION_IDENTIFIER_END_TO_BODY_START = 2;
+    public static final int WS_REGION_BODY_END_TO_NEXT_TOKEN = 3;
+
     private NodeLocation location;
+    private WhiteSpaceDescriptor whiteSpaceDescriptor;
 
     // BLangSymbol related attributes
     protected String name;
@@ -121,11 +129,18 @@ public class Service implements CompilationUnit, SymbolScope, BLangSymbol {
         visitor.visit(this);
     }
 
+    public void setWhiteSpaceDescriptor(WhiteSpaceDescriptor whiteSpaceDescriptor) {
+        this.whiteSpaceDescriptor = whiteSpaceDescriptor;
+    }
+
+    public WhiteSpaceDescriptor getWhiteSpaceDescriptor() {
+        return whiteSpaceDescriptor;
+    }
+
     @Override
     public NodeLocation getNodeLocation() {
         return location;
     }
-
 
     // Methods in BLangSymbol interface
 
@@ -202,6 +217,7 @@ public class Service implements CompilationUnit, SymbolScope, BLangSymbol {
 
         public Service buildService() {
             this.service.location = this.location;
+            this.service.whiteSpaceDescriptor = this.whiteSpaceDescriptor;
             this.service.name = this.name;
             this.service.pkgPath = this.pkgPath;
             this.service.symbolName = new SymbolName(name, pkgPath);
