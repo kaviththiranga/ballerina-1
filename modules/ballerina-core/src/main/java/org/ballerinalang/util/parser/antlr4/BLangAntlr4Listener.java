@@ -30,6 +30,7 @@ import org.ballerinalang.model.ImportPackage;
 import org.ballerinalang.model.NodeLocation;
 import org.ballerinalang.model.WhiteSpaceDescriptor;
 import org.ballerinalang.model.builder.BLangModelBuilder;
+import org.ballerinalang.model.builder.BLangVerboseModelBuilder;
 import org.ballerinalang.util.parser.BallerinaListener;
 import org.ballerinalang.util.parser.BallerinaParser;
 import org.ballerinalang.util.parser.BallerinaParser.AnnotationContext;
@@ -102,7 +103,7 @@ public class BLangAntlr4Listener implements BallerinaListener {
         if(this.isVerboseMode){
             // get whitespace from file start to first token
             String startingWhiteSpaceOfFile = getWhitespaceToLeft((CommonToken) tokenStream.get(FIRST_TOKEN_INDEX));
-            modelBuilder.setStartingWhiteSpace(startingWhiteSpaceOfFile);
+            ((BLangVerboseModelBuilder) modelBuilder).setStartingWhiteSpace(startingWhiteSpaceOfFile);
         }
     }
 
@@ -124,7 +125,7 @@ public class BLangAntlr4Listener implements BallerinaListener {
         // NOTE: using BallerinaFile node to keep whitespace inside package declaration as there
         // is no separate model for package declaration node in AST
         if (this.isVerboseMode) {
-            BallerinaFile.BFileBuilder bFileBuilder = modelBuilder.getbFileBuilder();
+            BallerinaFile.BFileBuilder bFileBuilder = ((BLangVerboseModelBuilder) modelBuilder).getbFileBuilder();
             // whitespace between 'package' keyword and package-name start
             bFileBuilder.addWhiteSpaceRegion(BallerinaFile.WS_REGION_PACKAGE_KEYWORD_TO_PACKAGE_NAME_START,
                     this.getWhitespaceToRight((CommonToken) ctx.start));
@@ -170,7 +171,7 @@ public class BLangAntlr4Listener implements BallerinaListener {
             // whitespace between semicolon and next token start
             whiteSpaceDescriptor.addWhitespaceRegion(ImportPackage.WS_REGION_IMPORT_DEC_END_TO_NEXT_TOKEN,
                     this.getWhitespaceToRight((CommonToken) ctx.stop));
-            
+
             importPackage.setWhiteSpaceDescriptor(whiteSpaceDescriptor);
         }
     }
@@ -182,6 +183,8 @@ public class BLangAntlr4Listener implements BallerinaListener {
         }
 
         modelBuilder.startServiceDef(getCurrentLocation(ctx));
+
+
     }
 
     @Override

@@ -131,12 +131,12 @@ public class ImportPackage implements Node {
         return location;
     }
 
-    @Override
+    //@Override
     public WhiteSpaceDescriptor getWhiteSpaceDescriptor() {
         return whiteSpaceDescriptor;
     }
 
-    @Override
+    //@Override
     public void setWhiteSpaceDescriptor(WhiteSpaceDescriptor whiteSpaceDescriptor) {
         this.whiteSpaceDescriptor = whiteSpaceDescriptor;
     }

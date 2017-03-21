@@ -40,15 +40,15 @@ public interface Node {
      */
     NodeLocation getNodeLocation();
 
-    /**
-     * Get information about whitespace associated with this particular node in source text
-     * @return whitespace descriptor
-     */
-    WhiteSpaceDescriptor getWhiteSpaceDescriptor();
-
-    /**
-     * Set information about whitespace associated with this particular node in source text
-     * @param whiteSpaceDescriptor whitespace descriptor for the node
-     */
-    void setWhiteSpaceDescriptor(WhiteSpaceDescriptor whiteSpaceDescriptor);
+//    /**
+//     * Get information about whitespace associated with this particular node in source text
+//     * @return whitespace descriptor
+//     */
+//    WhiteSpaceDescriptor getWhiteSpaceDescriptor();
+//
+//    /**
+//     * Set information about whitespace associated with this particular node in source text
+//     * @param whiteSpaceDescriptor whitespace descriptor for the node
+//     */
+//    void setWhiteSpaceDescriptor(WhiteSpaceDescriptor whiteSpaceDescriptor);
 }

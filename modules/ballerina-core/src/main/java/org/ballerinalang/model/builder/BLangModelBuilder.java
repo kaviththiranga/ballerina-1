@@ -947,8 +947,8 @@ public class BLangModelBuilder {
     }
 
     public void createConnector(NodeLocation location, String name, boolean isNative) {
-        currentCUGroupBuilder.setNodeLocation(location);
         currentCUGroupBuilder.setName(name);
+        currentCUGroupBuilder.setNodeLocation(location);
         currentCUGroupBuilder.setPkgPath(currentPackagePath);
         currentCUGroupBuilder.setNative(isNative);
 
@@ -1428,10 +1428,6 @@ public class BLangModelBuilder {
                 + ":" + location.getLineNumber());
     }
 
-    public void setStartingWhiteSpace(String whiteSpace){
-        bFileBuilder.addWhiteSpaceRegion(BallerinaFile.WS_REGION_FILE_START_TO_FIRST_TOKEN, whiteSpace);
-    }
-
     // Private methods
 
     private void addToBlockStmt(Statement stmt) {
@@ -1520,10 +1516,6 @@ public class BLangModelBuilder {
         StructFieldAccessExpr parentExpr = new StructFieldAccessExpr(location, parent, fieldExpr);
 
         exprStack.push(parentExpr);
-    }
-
-    public BallerinaFile.BFileBuilder getbFileBuilder() {
-        return bFileBuilder;
     }
 
     protected void startRefTypeInitExpr() {
