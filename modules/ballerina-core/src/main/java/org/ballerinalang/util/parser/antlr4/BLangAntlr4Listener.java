@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.ballerinalang.model.BallerinaFile;
 import org.ballerinalang.model.ImportPackage;
 import org.ballerinalang.model.NodeLocation;
+import org.ballerinalang.model.Resource;
 import org.ballerinalang.model.Service;
 import org.ballerinalang.model.WhiteSpaceDescriptor;
 import org.ballerinalang.model.builder.BLangModelBuilder;
@@ -257,7 +258,29 @@ public class BLangAntlr4Listener implements BallerinaListener {
                 int lineNo = identifier.getSymbol().getLine();
                 NodeLocation resourceLocation = new NodeLocation(fileName, lineNo);
 
-                modelBuilder.addResource(resourceLocation, identifier.getText());
+                if(this.isVerboseMode()){
+                    WhiteSpaceDescriptor whiteSpaceDescriptor = new WhiteSpaceDescriptor();
+                    // capture whitespace between resource keyword and identifier
+                    whiteSpaceDescriptor.addWhitespaceRegion(Resource.WS_REGION_RESOURCE_KEYWORD_TO_IDENTIFIER_START,
+                            getWhitespaceToRight(ctx.start.getTokenIndex()));
+
+                    // capture whitespace between identifier end and param list start
+                    whiteSpaceDescriptor.addWhitespaceRegion(Resource.WS_REGION_IDENTIFIER_END_TO_PARAM_START,
+                            getWhitespaceToRight(identifier.getSymbol().getTokenIndex()));
+
+                    // capture whitespace between param list end and resource body start
+                    whiteSpaceDescriptor.addWhitespaceRegion(Resource.WS_REGION_PARAM_END_TO_BODY_START,
+                            getWhitespaceToRight(ctx.functionBody().start.getTokenIndex()));
+
+                    // capture whitespace between resource body end and next token start
+                    whiteSpaceDescriptor.addWhitespaceRegion(Resource.WS_REGION_BODY_END_TO_NEXT_TOKEN,
+                            getWhitespaceToRight(ctx.stop.getTokenIndex()));
+
+                    ((BLangVerboseModelBuilder) modelBuilder).addResource(resourceLocation, whiteSpaceDescriptor,
+                            identifier.getText());
+                } else {
+                    modelBuilder.addResource(resourceLocation, identifier.getText());
+                }
             }
         }
     }

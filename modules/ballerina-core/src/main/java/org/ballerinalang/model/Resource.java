@@ -46,7 +46,18 @@ import java.util.Map;
  * @since 0.8.0
  */
 public class Resource implements Node, SymbolScope, CallableUnit {
+
+    /**
+     * Region ids for the possible whitespace regions within the node
+     */
+    public static final int WS_REGION_RESOURCE_KEYWORD_TO_IDENTIFIER_START = 1;
+    public static final int WS_REGION_IDENTIFIER_END_TO_PARAM_START = 2;
+    public static final int WS_REGION_PARAM_END_TO_BODY_START = 3;
+    public static final int WS_REGION_BODY_END_TO_NEXT_TOKEN = 4;
+
+
     private NodeLocation location;
+    private WhiteSpaceDescriptor whiteSpaceDescriptor;
 
     // BLangSymbol related attributes
     protected String name;
@@ -212,6 +223,14 @@ public class Resource implements Node, SymbolScope, CallableUnit {
     @Override
     public void accept(NodeVisitor visitor) {
         visitor.visit(this);
+    }
+
+    public WhiteSpaceDescriptor getWhiteSpaceDescriptor() {
+        return whiteSpaceDescriptor;
+    }
+
+    public void setWhiteSpaceDescriptor(WhiteSpaceDescriptor whiteSpaceDescriptor) {
+        this.whiteSpaceDescriptor = whiteSpaceDescriptor;
     }
 
     @Override

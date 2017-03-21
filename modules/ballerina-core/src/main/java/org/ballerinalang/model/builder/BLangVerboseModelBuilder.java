@@ -21,6 +21,7 @@ import org.ballerinalang.model.BLangPackage;
 import org.ballerinalang.model.BallerinaFile;
 import org.ballerinalang.model.ImportPackage;
 import org.ballerinalang.model.NodeLocation;
+import org.ballerinalang.model.Resource;
 import org.ballerinalang.model.Service;
 import org.ballerinalang.model.WhiteSpaceDescriptor;
 
@@ -58,5 +59,11 @@ public class BLangVerboseModelBuilder extends BLangModelBuilder {
         Service service = super.createService(location, name);
         service.setWhiteSpaceDescriptor(whiteSpaceDescriptor);
         return service;
+    }
+
+    public Resource addResource(NodeLocation location, WhiteSpaceDescriptor whiteSpaceDescriptor, String name) {
+        Resource resource = super.addResource(location, name);
+        resource.setWhiteSpaceDescriptor(whiteSpaceDescriptor);
+        return resource;
     }
 }

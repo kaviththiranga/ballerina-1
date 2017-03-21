@@ -840,7 +840,7 @@ public class BLangModelBuilder {
         annotationListStack.push(new ArrayList<>());
     }
 
-    public void addResource(NodeLocation location, String name) {
+    public Resource addResource(NodeLocation location, String name) {
         currentCUBuilder.setNodeLocation(location);
         currentCUBuilder.setName(name);
         currentCUBuilder.setPkgPath(currentPackagePath);
@@ -857,6 +857,7 @@ public class BLangModelBuilder {
 
         currentScope = resource.getEnclosingScope();
         currentCUBuilder = null;
+        return resource;
     }
 
     public void createWorker(String name, NodeLocation sourceLocation) {
