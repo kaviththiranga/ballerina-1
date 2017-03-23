@@ -270,7 +270,7 @@ public class BLangAntlr4Listener implements BallerinaListener {
 
                     // capture whitespace between param list end and resource body start
                     whiteSpaceDescriptor.addWhitespaceRegion(Resource.WS_REGION_PARAM_END_TO_BODY_START,
-                            getWhitespaceToRight(ctx.functionBody().start.getTokenIndex()));
+                            getWhitespaceToLeft(ctx.functionBody().start.getTokenIndex()));
 
                     // capture whitespace between resource body end and next token start
                     whiteSpaceDescriptor.addWhitespaceRegion(Resource.WS_REGION_BODY_END_TO_NEXT_TOKEN,
