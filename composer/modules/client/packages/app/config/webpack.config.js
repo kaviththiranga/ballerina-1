@@ -32,9 +32,14 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 
 const extractThemes = new ExtractTextPlugin({ filename: './[name].css', allChunks: true });
-const extractCSSBundle = new ExtractTextPlugin({ filename: './bundle-[name]-[hash].css', allChunks: true });
+const extractCSSBundle = new ExtractTextPlugin({ filename: './[name]-[hash].css', allChunks: true });
 
 const isProductionBuild = process.env.NODE_ENV === 'production';
+
+const excludeTest = function(modulePath) {
+    return modulePath.includes('node_modules') && !modulePath.includes('@ballerina-lang');
+};
+
 let exportConfig = {};
 
 // Keeps unicode codepoints of font-ballerina for each icon name
@@ -47,13 +52,13 @@ const config = [{
     },
     output: {
         filename: '[name]-[hash].js',
-        path: path.resolve(__dirname, 'dist'),
+        path: path.resolve(__dirname, './dist'),
     },
     module: {
         noParse: /vscode-languageserver-types/,
         rules: [{
             test: /\.js$/,
-            exclude: /(node_modules|modules\/web\/lib\/scss)/,
+            exclude: excludeTest,
             use: [
                 {
                     loader: 'babel-loader',
@@ -65,17 +70,19 @@ const config = [{
         },
         {
             test: /\.html$/,
+            exclude: excludeTest,
             use: [{
                 loader: 'html-loader',
             }],
         },
         {
             test: /\.scss$/,
-            exclude: /node_modules/,
+            exclude: excludeTest,
             loader: 'style-loader!css-loader!sass-loader',
         },
         {
             test: /\.css$/,
+            exclude: excludeTest,
             use: extractCSSBundle.extract({
                 fallback: 'style-loader',
                 use: [{
@@ -89,11 +96,12 @@ const config = [{
         },
         {
             test: /\.(png|jpg|svg|cur|gif|eot|svg|ttf|woff|woff2)$/,
+            exclude: excludeTest,
             use: ['url-loader'],
         },
         {
             test: /\.jsx$/,
-            exclude: /(node_modules|modules\/web\/lib\/scss)/,
+            exclude: excludeTest,
             use: [
                 {
                     loader: 'babel-loader',
@@ -107,15 +115,7 @@ const config = [{
     },
     plugins: [
         new ProgressBarPlugin(),
-        new CleanWebpackPlugin(['dist'], {watch: true, exclude:['themes']}),
-        new webpack.optimize.CommonsChunkPlugin({
-            name: 'vendor',
-            chunks: ['bundle'],
-            minChunks(module) {
-                const context = module.context;
-                return context && context.indexOf('node_modules') >= 0 && context.indexOf('@ballerina-lang') === -1;
-            },
-        }),
+        new CleanWebpackPlugin(['./dist'], {watch: true, exclude:['themes']}),
         extractCSSBundle,
         new webpack.ProvidePlugin({
             $: 'jquery',
@@ -124,20 +124,20 @@ const config = [{
         new WriteFilePlugin(),
         new CopyWebpackPlugin([
             {
-                from: 'public',
+                from: './public',
             },
             {
-                from: 'node_modules/monaco-editor/min/vs',
+                from: './node_modules/monaco-editor/min/vs',
                 to: 'vs',
             },
         ]),
         new HtmlWebpackPlugin({
-            template: 'src/index.ejs',
+            template: './src/index.ejs',
             inject: false,
         })
     ],
     devServer: {
-        contentBase: path.join(__dirname, "dist"),
+        contentBase: path.join(__dirname, "./dist"),
     },
     externals: {
         jsdom: 'window',
@@ -150,10 +150,9 @@ const config = [{
     devtool: 'source-map',
     resolve: {
         extensions: ['.js', '.json', '.jsx'],
-        modules: ['src', 'public/lib', 'node_modules'],
+        modules: ['./public/lib', './node_modules'],
         alias: {
-            "theme-wso2": 'theme-wso2-2.0.0/js/theme-wso2',
-            "images": 'public/images',
+            "theme-wso2": 'theme-wso2-2.0.0/js/theme-wso2'
         },
     },
 
@@ -165,12 +164,13 @@ const config = [{
     },
     output: {
         filename: '[name].css',
-        path: path.resolve(__dirname, 'dist/themes/'),
+        path: path.resolve(__dirname, './dist/themes/'),
     },
     module: {
         rules: [
             {
                 test: /\.scss$/,
+                exclude: excludeTest,
                 use: extractThemes.extract({
                     fallback: 'style-loader',
                     use: [{

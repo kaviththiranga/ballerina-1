@@ -4,8 +4,8 @@ const shell = require('shelljs');
 const webfont = require('webfont').default
 const codepoints = {};
 
-const fontsDir = path.resolve(__dirname, '../dist/fonts/');
-const stylesDir = path.resolve(__dirname, '../dist/css/');
+const fontsDir = path.resolve(__dirname, '../lib/fonts/');
+const stylesDir = path.resolve(__dirname, '../lib/css/');
 const outputFilename = 'font-ballerina';
 
 const config = {
@@ -49,7 +49,7 @@ webfont(config)
         fs.writeFileSync(path.join(fontsDir, outputFilename + '.woff'), result.woff);
         fs.writeFileSync(path.join(fontsDir, outputFilename + '.woff2'), result.woff2);
         fs.writeFileSync(path.join(stylesDir, outputFilename + '.css'), result.styles);
-        fs.writeFileSync(path.resolve(__dirname, '../dist/codepoints.json'), JSON.stringify(codepoints), 'utf8');
+        fs.writeFileSync(path.resolve(__dirname, '../lib/codepoints.json'), JSON.stringify(codepoints), 'utf8');
         console.info('Successfully built font at ' + fontsDir);
     })
     .catch((error) => {

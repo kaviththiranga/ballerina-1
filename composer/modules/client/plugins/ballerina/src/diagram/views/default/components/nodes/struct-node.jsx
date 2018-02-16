@@ -28,7 +28,7 @@ import ImageUtil from '../../../../image-util';
 import EditableText from './editable-text';
 import StructDefinitionItem from './struct-definition-item';
 import TreeUtils from './../../../../../model/tree-util';
-import Node from './../../../../../../ballerina/model/tree/node';
+import Node from '../../../../../model/tree/node';
 import TreeBuilder from './../../../../../model/tree-builder';
 import FragmentUtils from './../../../../../utils/fragment-utils';
 

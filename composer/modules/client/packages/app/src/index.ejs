@@ -27,8 +27,7 @@
 
     <link href="css/preloader.css" rel="stylesheet" type="text/css"/>
 
-    <link rel="stylesheet" type="text/css" href=<%=JSON.stringify("bundle-bundle-" + webpack.hash + ".css")%>/>
-    <link rel="stylesheet" type="text/css" href=<%=JSON.stringify("bundle-vendor-" + webpack.hash + ".css")%>/>
+    <link rel="stylesheet" type="text/css" href=<%=JSON.stringify("bundle-" + webpack.hash + ".css")%>/>
     <link rel="stylesheet" type="text/css" href="css/preloader.css"/>
     <link rel="stylesheet" href="themes/default.css" title="default"/>
     <link rel="stylesheet" href="themes/light.css" title="light" disabled/>
@@ -145,7 +144,6 @@
 <div id="app-container"></div>
 <div id="dialog-container"></div>
 <script src="vs/loader.js"></script>
-<script src=<%=JSON.stringify("vendor-" + webpack.hash + ".js")%> ></script>
 <script src=<%=JSON.stringify("bundle-" + webpack.hash + ".js")%> ></script>
 </body>
 </html>

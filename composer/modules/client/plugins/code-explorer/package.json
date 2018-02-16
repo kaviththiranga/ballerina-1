@@ -4,7 +4,7 @@
   "description": "Code Explorer plugin for composer",
   "homepage": "https://github.com/ballerina-lang/ballerina/composer/modules/client/plugins/code-explorer",
   "license": "Apache-2.0",
-  "main": "dist/index.js",
+  "main": "lib/index.js",
   "bugs": {
     "url": "https://github.com/ballerina-lang/ballerina/issues"
   },
@@ -13,13 +13,14 @@
     "url": "git+https://github.com/ballerina-lang/ballerina.git"
   },
   "scripts": {
-    "clean": "rimraf dist",
-    "copy-assets": "copyfiles -u 1 \"src/**/*.css\" \"src/**/*.scss\" \"src/**/*.json\" dist",
-    "build": "npm run clean && npm run copy-assets && babel src -d dist"
+    "clean": "rimraf lib",
+    "copy-files": "copyfiles -u 1 \"src/**/*.*\" lib",
+    "dev": "nodemon --watch ./src --exec 'npm run build'",
+    "build": "npm run copy-files"
   },
   "devDependencies": {
-    "babel-cli": "^6.24.0",
     "copyfiles": "^1.2.0",
+    "nodemon": "^1.15.0",
     "rimraf": "^2.6.2"
   },
   "dependencies": {
