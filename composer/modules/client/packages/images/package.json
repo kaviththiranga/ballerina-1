@@ -13,7 +13,7 @@
   },
   "scripts": {
     "clean": "rimraf dist",
-    "copy-assets": "copyfiles -u 1 'src/**/*.*' dist",
+    "copy-assets": "copyfiles -u 1 \"src/**/*.*\" dist",
     "build": "npm run clean && npm run copy-assets"
   },
   "devDependencies": {
