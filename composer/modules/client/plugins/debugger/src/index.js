@@ -22,7 +22,7 @@ import DebugManager from './DebugManager/DebugManager';
 import LaunchManager from './LaunchManager';
 import * as DebuggerConstants from './constants';
 
-export default {
+export {
     DebuggerPlugin,
     BreakpointHoc,
     DebuggerHoc,

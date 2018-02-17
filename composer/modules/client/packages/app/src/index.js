@@ -22,7 +22,7 @@ import 'bootstrap';
 import 'theme-wso2';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/css/bootstrap-theme.min.css';
-import '@ballerina-lang/composer-font/dist/css/font-ballerina.css';
+import '@ballerina-lang/composer-font/lib/css/font-ballerina.css';
 import { fetchConfigs } from '@ballerina-lang/composer-api-client';
 import { Composer, Log as log } from '@ballerina-lang/composer-core';
 import _ from 'lodash';

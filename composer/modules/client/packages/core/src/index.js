@@ -36,7 +36,7 @@ import UndoableOperation from './editor/undo-manager/undoable-operation';
 import * as FSUtils from './workspace/fs-util';
 import ScrollBarsWithContextAPI from './view/scroll-bars/ScrollBarsWithContextAPI';
 
-export default {
+export {
     Composer,
     Log,
     EventChannel,

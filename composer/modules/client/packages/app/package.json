@@ -81,6 +81,7 @@
   },
   "dependencies": {
     "@ballerina-lang/composer-font": "0.962.0",
+    "@ballerina-lang/composer-images": "0.962.0",
     "@ballerina-lang/composer-api-client": "0.962.0",
     "@ballerina-lang/composer-core": "0.962.0",
     "@ballerina-lang/composer-ballerina-plugin": "0.962.0",

@@ -56,7 +56,7 @@ export default {
             example_url: 'https://ballerinalang.org/docs/by-example/',
             api_reference_url: 'https://ballerinalang.org/docs/api/0.96.1/',
         },
-        [WelcomeTabConstants.PLUGIN_ID]: {
+        [WelcomeTabConstants.WELCOME_TAB_PLUGIN_ID]: {
             userGuide: 'http://ballerinalang.org/docs/user-guide/',
             samples: [
                 {

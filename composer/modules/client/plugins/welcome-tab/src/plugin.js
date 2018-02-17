@@ -99,7 +99,7 @@ class WelcomeTabPlugin extends Plugin {
                             commandManager: command,
                         };
                     },
-                    region: LayoutConstants.EDITOR_TABS,
+                    region: LayoutConstants.REGIONS.EDITOR_TABS,
                     // region specific options for editor-tabs views
                     regionOptions: {
                         tabTitle: LABELS.WELCOME,

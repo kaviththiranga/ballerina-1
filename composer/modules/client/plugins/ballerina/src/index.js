@@ -23,7 +23,7 @@ import NodeFactory from './model/node-factory';
 import AutoSuggest from './diagram/views/default/components/decorators/autosuggest-html';
 import ServiceNode from './model/tree/service-node';
 
-export default {
+export {
     BallerinaPlugin,
     BallerinaPluginConstants,
     TreeUtil,

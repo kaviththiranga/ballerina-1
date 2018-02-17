@@ -18,7 +18,7 @@
 import TryItPlugin from './plugin';
 import * as TryItConstants from './constants';
 
-export default {
+export {
     TryItPlugin,
     TryItConstants,
 };

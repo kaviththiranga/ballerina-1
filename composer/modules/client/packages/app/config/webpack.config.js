@@ -82,7 +82,6 @@ const config = [{
         },
         {
             test: /\.css$/,
-            exclude: excludeTest,
             use: extractCSSBundle.extract({
                 fallback: 'style-loader',
                 use: [{
@@ -96,7 +95,6 @@ const config = [{
         },
         {
             test: /\.(png|jpg|svg|cur|gif|eot|svg|ttf|woff|woff2)$/,
-            exclude: excludeTest,
             use: ['url-loader'],
         },
         {
@@ -130,6 +128,14 @@ const config = [{
                 from: './node_modules/monaco-editor/min/vs',
                 to: 'vs',
             },
+            {
+                from: './node_modules/@ballerina-lang/composer-font/lib/fonts',
+                to: 'fonts',
+            },
+            {
+                from: './node_modules/@ballerina-lang/composer-images/lib',
+                to: 'images',
+            }
         ]),
         new HtmlWebpackPlugin({
             template: './src/index.ejs',

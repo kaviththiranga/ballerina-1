@@ -18,7 +18,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'lodash';
-import breakpointHoc from '@ballerina-lang/composer-debugger-plugin';
+import { BreakpointHoc as breakpointHoc } from '@ballerina-lang/composer-debugger-plugin';
 import ExpressionEditor from '../../../../../expression-editor/expression-editor-utils';
 import ActionBox from './action-box';
 import SimpleBBox from './../../../../../model/view/simple-bounding-box';

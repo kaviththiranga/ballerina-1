@@ -18,7 +18,7 @@
 import DiagramExportPlugin from './plugin';
 import * as DiagramExportConstants from './constants';
 
-export default {
+export {
     DiagramExportPlugin,
     DiagramExportConstants,
-}
+};

@@ -18,7 +18,7 @@
 import ImportSwaggerPlugin from './plugin';
 import * as ImportSwaggerConstants from './constants';
 
-export default {
+export {
     ImportSwaggerPlugin,
     ImportSwaggerConstants,
 };

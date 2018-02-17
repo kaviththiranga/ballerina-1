@@ -18,7 +18,7 @@
 import HelpPlugin from './plugin';
 import * as HelpPluginConstants from './constants';
 
-export default {
+export {
     HelpPlugin,
     HelpPluginConstants,
-}
+};

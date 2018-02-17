@@ -18,7 +18,7 @@
 import CodeExplorerPlugin from './plugin';
 import * as CodeExplorerConstants from './constants';
 
-export default {
+export {
     CodeExplorerPlugin,
     CodeExplorerConstants,
 };

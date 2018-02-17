@@ -18,7 +18,7 @@
 import WelcomeTabPlugin from './plugin';
 import * as WelcomeTabConstants from './constants';
 
-export default {
+export {
     WelcomeTabPlugin,
     WelcomeTabConstants,
 };

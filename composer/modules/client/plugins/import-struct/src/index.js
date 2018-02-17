@@ -18,7 +18,7 @@
 import ImportStructPlugin from './plugin';
 import * as ImportStructPluginConstants from './constants';
 
-export default {
+export {
     ImportStructPlugin,
     ImportStructPluginConstants,
-}
+};

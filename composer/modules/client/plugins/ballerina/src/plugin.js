@@ -173,7 +173,7 @@ class BallerinaPlugin extends Plugin {
                     propsProvider: () => {
                         return {};
                     },
-                    region: REGIONS.EDITOR_TABS,
+                    region: LayoutConstants.REGIONS.EDITOR_TABS,
                     regionOptions: {
                         tabTitle: ({ packageName }) => `${packageName} docs`,
                         customTitleClass: CLASSES.TAB_TITLE.DESIGN_VIEW,
