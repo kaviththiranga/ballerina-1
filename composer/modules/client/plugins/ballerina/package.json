@@ -14,9 +14,9 @@
   },
   "scripts": {
     "clean": "rimraf dist",
-    "copy-files": "copyfiles -u 1 \"src/**/*.*\" lib",
+    "copy-assets": "copyfiles -u 1 \"src/**/*.css\" \"src/**/*.scss\" \"src/**/*.json\" \"src/**/*.ttf\" lib",
+    "build": "npm run clean && npm run copy-assets && babel src -d lib -s",
     "dev": "nodemon --watch ./src --exec 'npm run build'",
-    "build": "npm run copy-files",
     "test-spec:keep-building": "cross-env NODE_ENV=test-source-gen-dev webpack --watch",
     "test-spec:run": "mocha --require source-map-support/register ./src/plugins/ballerina/tests/js/spec/setup.js ./target/ballerina-test.js",
     "test-spec:run-ignore-ws": "cross-env IGNORE_WS=true mocha --require source-map-support/register ./src/plugins/ballerina/tests/js/spec/setup.js ./target/ballerina-test.js",

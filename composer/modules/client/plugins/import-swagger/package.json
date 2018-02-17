@@ -14,11 +14,12 @@
   },
   "scripts": {
     "clean": "rimraf lib",
-    "copy-files": "copyfiles -u 1 \"src/**/*.*\" lib",
     "dev": "nodemon --watch ./src --exec 'npm run build'",
-    "build": "npm run copy-files"
+    "copy-assets": "copyfiles -u 1 \"src/**/*.css\" \"src/**/*.scss\" \"src/**/*.json\" lib",
+    "build": "npm run clean && npm run copy-assets && babel src -d lib -s"
   },
   "devDependencies": {
+    "babel-cli": "^6.24.0",
     "copyfiles": "^1.2.0",
     "nodemon": "^1.15.0",
     "rimraf": "^2.6.2"

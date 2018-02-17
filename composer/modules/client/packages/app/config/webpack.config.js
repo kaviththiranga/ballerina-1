@@ -66,6 +66,7 @@ const config = [{
                         presets: ['es2015', 'react'],
                     },
                 },
+                'source-map-loader',
             ],
         },
         {
