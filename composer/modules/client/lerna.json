@@ -2,7 +2,8 @@
   "lerna": "2.8.0",
   "packages": [
     "packages/*",
-    "plugins/*"
+    "plugins/*",
+    "tests"
   ],
   "version": "0.962.0"
 }

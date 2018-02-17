@@ -1,0 +1,33 @@
+{
+  "name": "@ballerina-lang/composer-source-gen-tests",
+  "version": "0.962.0",
+  "description": "Composer Source Gen Tests",
+  "homepage": "https://github.com/ballerina-lang/ballerina/composer/modules/client/tests",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/ballerina-lang/ballerina/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ballerina-lang/ballerina.git"
+  },
+  "scripts": {
+    "test": "npm run compile && mocha --timeout 3000 target/test/js/source-gen-test.js",
+    "test:debug": "npm run compile && cross-env SOURCE_DEBUG=true mocha target/test/js/source-gen-test.js",
+    "compile": "babel ./src --out-dir ./target"
+  },
+  "dependencies": {
+    "@ballerina-lang/composer-api-client": "0.962.0",
+    "@ballerina-lang/composer-ballerina-plugin": "0.962.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-plugin-module-alias": "^1.6.0",
+    "babel-preset-env": "^1.6.1",
+    "chai": "^4.1.2",
+    "cross-env": "^5.1.1",
+    "jsdom": "^11.4.0",
+    "jsdom-global": "^3.0.2",
+    "mocha": "^4.0.1"
+  }
+}

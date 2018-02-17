@@ -29,13 +29,12 @@ import _ from 'lodash';
 import path from 'path';
 import chalk from 'chalk';
 import { spawn } from 'child_process';
+import { parseContent, fetchConfigs } from '@ballerina-lang/composer-api-client';
+import {} from '@ballerina-lang/composer-ballerina-plugin';
 
 const jsdom = require('jsdom-global')(undefined, { url: 'http://localhost:9091' });
-require('composer/vendor.js');
 
 global.webpackJsonp = window.webpackJsonp;
-require('composer/tree.js');
-require('composer/testable.js');
 
 console.log(jsdom);
 const directory = process.env.DIRECTORY ? process.env.DIRECTORY : '';
