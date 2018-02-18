@@ -52,7 +52,7 @@ const config = [{
     },
     output: {
         filename: '[name]-[hash].js',
-        path: path.resolve(__dirname, './dist'),
+        path: path.resolve(__dirname, '../dist'),
     },
     module: {
         noParse: /vscode-languageserver-types/,
@@ -114,7 +114,7 @@ const config = [{
     },
     plugins: [
         new ProgressBarPlugin(),
-        new CleanWebpackPlugin(['./dist'], {watch: true, exclude:['themes']}),
+        new CleanWebpackPlugin(['../dist'], {watch: true, exclude:['themes']}),
         extractCSSBundle,
         new webpack.ProvidePlugin({
             $: 'jquery',
@@ -144,7 +144,7 @@ const config = [{
         })
     ],
     devServer: {
-        contentBase: path.join(__dirname, "./dist"),
+        contentBase: path.join(__dirname, "../dist"),
     },
     externals: {
         jsdom: 'window',
@@ -171,7 +171,7 @@ const config = [{
     },
     output: {
         filename: '[name].css',
-        path: path.resolve(__dirname, './dist/themes/'),
+        path: path.resolve(__dirname, '../dist/themes/'),
     },
     module: {
         rules: [
