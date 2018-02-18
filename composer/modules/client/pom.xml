@@ -171,8 +171,8 @@
                 <configuration>
                     <includes>
                         <include>${basedir}/package.json</include>
-                        <include>${basedir}/src/plugins/help/dialogs/about-dialog.jsx</include>
-                        <include>${basedir}/src/config.js</include>
+                        <include>${basedir}/plugins/help/dialogs/about-dialog.jsx</include>
+                        <include>${basedir}/packages/app/config/composer-config.js</include>
                     </includes>
                     <replacements>
                         <replacement>
