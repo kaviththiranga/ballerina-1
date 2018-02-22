@@ -209,7 +209,7 @@ public class Command {
             FileUtils.writeStringToFile(tmpFile, source);
             // Set the tmp file path and name to the command.
             this.fileName = tmpFile.getName();
-            this.filePath = tmpFile.getPath();
+            this.filePath = tmpFile.getParent();
         } catch (IOException e) {
             logger.error("Unable to save command content");
             // @todo report error

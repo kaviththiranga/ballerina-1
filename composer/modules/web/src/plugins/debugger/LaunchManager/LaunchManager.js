@@ -15,8 +15,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
-import _ from 'lodash';
 import EventChannel from 'event_channel';
 import LaunchChannel from './LaunchChannel';
 
@@ -72,6 +70,27 @@ class LaunchManager extends EventChannel {
     }
 
     /**
+     * Send message to run give ballerina source
+     * @param {String} source - source
+     *
+     * @memberof LaunchManager
+     */
+    sendRunSourceMessage(source) {
+        this.channel = new LaunchChannel(this.endpoint);
+        this.channel.on('connected', () => {
+            const message = {
+                command: 'RUN_SOURCE',
+                source,
+                commandArgs: [],
+            };
+            this.channel.sendMessage(message);
+        });
+        this.channel.on('onmessage', (message) => {
+            this.processMesssage(message);
+        });
+    }
+
+    /**
      * Send message to ballerina program
      * @param {File} file - File instance
      *
@@ -96,7 +115,7 @@ class LaunchManager extends EventChannel {
     processMesssage(message) {
         this._messages.push(message);
         if (message.code === 'OUTPUT') {
-            if (_.endsWith(message.message, this.debugPort)) {
+            if (message.message && message.message.endsWith(this.debugPort)) {
                 this.trigger('debug-active', this.debugPort);
                 return;
             }

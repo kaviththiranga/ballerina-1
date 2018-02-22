@@ -15,8 +15,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
-import _ from 'lodash';
 import EventChannel from 'event_channel';
 import log from 'log';
 
@@ -40,7 +38,7 @@ class LaunchChannel extends EventChannel {
      */
     constructor(endpoint) {
         super();
-        if (_.isNil(endpoint)) {
+        if (!endpoint) {
             throw new Error('Invalid Endpoint');
         }
         this.endpoint = endpoint;
