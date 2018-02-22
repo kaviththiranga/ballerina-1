@@ -30,6 +30,8 @@ public class CommandDTO {
 
     private String[] commandArgs;
 
+    private String source;
+
     public CommandDTO(String command, String filePath, String fileName, String[] args) {
         this.command = command;
         this.filePath = filePath;
@@ -67,5 +69,13 @@ public class CommandDTO {
 
     public void setCommandArgs(String[] commandArgs) {
         this.commandArgs = commandArgs;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
     }
 }

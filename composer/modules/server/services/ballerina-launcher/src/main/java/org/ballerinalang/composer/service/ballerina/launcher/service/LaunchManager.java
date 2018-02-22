@@ -252,6 +252,12 @@ public class LaunchManager {
         CommandDTO command = gson.fromJson(json, CommandDTO.class);
         MessageDTO message;
         switch (command.getCommand()) {
+            case LauncherConstants.RUN_SOURCE:
+                Command cmd = new Command(
+                        command.getFileName(), command.getFilePath(), command.getCommandArgs(), false);
+                cmd.setSource(command.getSource());
+                run(cmd);
+                break;
             case LauncherConstants.RUN_PROGRAM:
                 run(new Command(command.getFileName(), command.getFilePath(), command.getCommandArgs(), false));
                 break;

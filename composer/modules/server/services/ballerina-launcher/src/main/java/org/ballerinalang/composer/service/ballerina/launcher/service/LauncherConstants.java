@@ -35,6 +35,8 @@ public class LauncherConstants {
     public static final String LAUNCHER_WEBSOCKET_PATH = "/launch";
     
     public static final String RUN_PROGRAM = "RUN_PROGRAM";
+    // Following command will be used by widget to run source.
+    public static final String RUN_SOURCE = "RUN_SOURCE";
     public static final String DEBUG_PROGRAM = "DEBUG_PROGRAM";
     public static final String TERMINATE = "TERMINATE";
     public static final String INVALID_CMD = "INVALID_CMD";

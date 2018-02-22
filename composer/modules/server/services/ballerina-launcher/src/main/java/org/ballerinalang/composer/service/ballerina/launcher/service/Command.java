@@ -16,6 +16,7 @@
 
 package org.ballerinalang.composer.service.ballerina.launcher.service;
 
+import org.apache.commons.io.FileUtils;
 import org.ballerinalang.composer.service.ballerina.launcher.service.util.LaunchUtils;
 import org.ballerinalang.composer.service.ballerina.parser.service.model.BallerinaFile;
 import org.ballerinalang.composer.service.ballerina.parser.service.util.ParserUtils;
@@ -26,6 +27,7 @@ import org.wso2.ballerinalang.compiler.tree.BLangCompilationUnit;
 import org.wso2.ballerinalang.compiler.tree.BLangPackageDeclaration;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,8 +39,8 @@ import java.util.stream.Collectors;
  */
 public class Command {
 
-    private String fileName;
-    private String filePath;
+    private String fileName = "";
+    private String filePath = "";
     private boolean debug = false;
     private String[] commandArgs;
     private int port;
@@ -122,7 +124,8 @@ public class Command {
         commandList.add("run");
 
         BallerinaFile ballerinaFile = ParserUtils.getBallerinaFile(filePath, fileName);
-        // assuming there will be only one compilation unit in the list, I'm getting the first element from the list
+
+        // Assuming there will be only one compilation unit in the list, I'm getting the first element from the list
         BLangCompilationUnit currentBLangCompilationUnit = ballerinaFile.getBLangPackage().compUnits.get(0);
         List<TopLevelNode> topLevelNodes = currentBLangCompilationUnit.getTopLevelNodes();
         // filter out the BLangPackageDeclaration from top level nodes list
@@ -190,5 +193,26 @@ public class Command {
 
     public void setErrorOutputEnabled(boolean errorOutputEnabled) {
         this.errorOutputEnabled = errorOutputEnabled;
+    }
+
+    /**
+     * Creates a temporary file out of given source -
+     * and assign it to the command object to run.
+     *
+     * @param source source
+     */
+    public void setSource(String source) {
+        File tmpFile = null;
+        // We will create a tmp bal file and set that as the fileName.
+        try {
+            tmpFile = File.createTempFile("Sample", ".bal");
+            FileUtils.writeStringToFile(tmpFile, source);
+            // Set the tmp file path and name to the command.
+            this.fileName = tmpFile.getName();
+            this.filePath = tmpFile.getPath();
+        } catch (IOException e) {
+            logger.error("Unable to save command content");
+            // @todo report error
+        }
     }
 }
