@@ -42,27 +42,24 @@ public class BallerinaLauncherService implements ComposerService {
 
     private ServerConfig serverConfig;
 
-    public BallerinaLauncherService() {
-    }
-
     public BallerinaLauncherService(ServerConfig serverConfig) {
         this.serverConfig = serverConfig;
     }
 
     @OnOpen
     public void onOpen (Session session) {
-        LaunchManager.getInstance(serverConfig).setSession(session);
+        LaunchManager launchManager = createLaunchManager(session);
     }
 
     @OnMessage
     public void onTextMessage(String request, Session session) {
-        LaunchManager.getInstance(serverConfig).setSession(session);
-        LaunchManager.getInstance(serverConfig).processCommand(request);
+        getLaunchManager(session).processCommand(request);
     }
 
     @OnClose
     public void onClose(CloseReason closeReason, Session session) {
-        LaunchManager.getInstance(serverConfig).stopProcess();
+        getLaunchManager(session).stopProcess();
+        destroyLaunchManager(session);
     }
 
     @OnError
@@ -73,5 +70,20 @@ public class BallerinaLauncherService implements ComposerService {
     @Override
     public ServiceInfo getServiceInfo() {
         return new ServiceInfo(Constants.SERVICE_NAME, Constants.SERVICE_PATH, ServiceType.WS);
+    }
+
+    private LaunchManager createLaunchManager(Session session) {
+        LaunchManager launchManager = new LaunchManager(serverConfig, session);
+        LaunchManager.getLaunchManagersMap()
+                 .put(session.getId(), launchManager);
+        return launchManager;
+    }
+
+    private LaunchManager getLaunchManager(Session session) {
+        return LaunchManager.getLaunchManagersMap().get(session.getId());
+    }
+
+    private void destroyLaunchManager(Session session) {
+        LaunchManager.getLaunchManagersMap().remove(session.getId());
     }
 }

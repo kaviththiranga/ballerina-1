@@ -19,6 +19,7 @@ import EventChannel from 'event_channel';
 import LaunchChannel from './LaunchChannel';
 import { COMMANDS, EVENTS, MSG_TYPES } from './constants';
 
+let launchSessionID;
 class LaunchManager extends EventChannel {
     constructor() {
         super();
@@ -150,7 +151,19 @@ class LaunchManager extends EventChannel {
             // ignore and return.
             return;
         }
+        if (message.code === MSG_TYPES.LAUNCH_SESSION_INFO) {
+            launchSessionID = message.message;
+            // ignore and return.
+            return;
+        }
         this.trigger(EVENTS.CONSOLE_MESSAGE_RECEIVED, message);
+    }
+
+    /**
+     * Get launch session ID
+     */
+    getLaunchSessionID() {
+        return launchSessionID;
     }
 }
 

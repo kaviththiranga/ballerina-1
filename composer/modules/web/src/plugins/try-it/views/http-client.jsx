@@ -26,6 +26,7 @@ import copy from 'copy-to-clipboard';
 import PropTypes from 'prop-types';
 import React from 'react';
 import ServiceTreeNode from 'plugins/ballerina/model/tree/service-node';
+import LaunchManager from 'plugins/debugger/LaunchManager';
 import uuid from 'uuid/v4';
 import 'brace/mode/json';
 import 'brace/mode/xml';
@@ -99,7 +100,7 @@ class HttpClient extends React.Component {
      * @memberof HttpClient
      */
     componentDidMount() {
-        getTryItUrl()
+        getTryItUrl(LaunchManager.getLaunchSessionID())
             .then((baseUrl) => {
                 this.setState({
                     baseUrl,
@@ -254,7 +255,7 @@ class HttpClient extends React.Component {
         const tryItPayload = _.cloneDeep(this.state);
         delete tryItPayload.selectedService;
         delete tryItPayload.selectedResource;
-        invokeTryIt(tryItPayload, 'http')
+        invokeTryIt(tryItPayload, 'http', LaunchManager.getLaunchSessionID())
             .then((response) => {
                 if (this.state.waitingForResponse === true) {
                     this.setState({

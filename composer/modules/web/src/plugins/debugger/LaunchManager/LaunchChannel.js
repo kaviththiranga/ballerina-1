@@ -55,7 +55,7 @@ class LaunchChannel extends EventChannel {
         const websocket = new WebSocket(this.endpoint);
         // bind functions
         websocket.onmessage = (strMessage) => { this.parseMessage(strMessage); };
-        websocket.onopen = () => { this.onOpen(); };
+        websocket.onopen = (e) => { this.onOpen(e); };
         websocket.onclose = (event) => { this.onClose(event); };
         websocket.onerror = (error) => { this.onError(error); };
         this.websocket = websocket;
@@ -118,7 +118,8 @@ class LaunchChannel extends EventChannel {
      *
      * @memberof LaunchChannel
      */
-    onOpen() {
+    onOpen(e) {
+        console.log(e);
         // this.launcher.active = true;
         this.trigger(EVENTS.SESSION_STARTED);
         this.startPing();

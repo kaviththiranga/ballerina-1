@@ -34,6 +34,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -67,11 +68,14 @@ public class TryItService implements ComposerService {
     @Path("/{protocol}")
     @Consumes(MediaType.TEXT_PLAIN)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response tryIt(@Context Request request, @PathParam("protocol") String protocol, String clientArgs) {
+    public Response tryIt(@Context Request request, @PathParam("protocol") String protocol,
+                          @QueryParam("sessionID") String sessionID,
+                          String clientArgs) {
         try {
+            LaunchManager launchManager = LaunchManager.getLaunchManagersMap().get(sessionID);
             String hostName = getHostName(request);
-            String hostAndPort = "".equals(LaunchManager.getInstance(serverConfig).getPort()) ? hostName :
-                    hostName + ":" + LaunchManager.getInstance(serverConfig).getPort();
+            String hostAndPort = "".equals(launchManager.getPort()) ? hostName :
+                    hostName + ":" + launchManager.getPort();
             TryItClient tryItClient = tryItClientFactory.getClient(protocol, hostAndPort, clientArgs);
             String responseContent = tryItClient.execute();
             
@@ -101,11 +105,12 @@ public class TryItService implements ComposerService {
     @GET
     @Path("/url")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getUrl(@Context Request request) {
+    public Response getUrl(@Context Request request, @QueryParam("sessionID") String sessionID) {
         try {
+            LaunchManager launchManager = LaunchManager.getLaunchManagersMap().get(sessionID);
             String hostName = getHostName(request);
-            String hostAndPort = "".equals(LaunchManager.getInstance(serverConfig).getPort()) ? hostName :
-                                 hostName + ":" + LaunchManager.getInstance(serverConfig).getPort();
+            String hostAndPort = "".equals(launchManager.getPort()) ? hostName :
+                                 hostName + ":" + launchManager.getPort();
             JsonObject response = new JsonObject();
             response.addProperty("url", hostAndPort);
         

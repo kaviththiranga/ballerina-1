@@ -31,6 +31,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.Map;
 import javax.websocket.Session;
 
 /**
@@ -40,13 +42,13 @@ public class LaunchManager {
 
     private static final Logger logger = LoggerFactory.getLogger(LaunchManager.class);
 
+    private static Map<String, LaunchManager> launchManagersMap = new HashMap<>();
+
     private static final String LAUNCHER_CONFIG_KEY = "launcher";
 
     private static final String SERVICE_TRY_URL_CONFIG = "serviceTryURL";
 
     private ServerConfig serverConfig;
-
-    private static LaunchManager launchManagerInstance;
 
     private Session launchSession;
 
@@ -57,22 +59,13 @@ public class LaunchManager {
     /**
      * Instantiates a new Debug manager.
      */
-    protected LaunchManager() {
+    public LaunchManager(ServerConfig serverConfig, Session launchSession) {
+        this.serverConfig = serverConfig;
+        this.launchSession = launchSession;
     }
 
-    /**
-     * Launch manager singleton.
-     *
-     * @return LaunchManager instance
-     */
-    public static LaunchManager getInstance(ServerConfig serverConfig) {
-        synchronized (LaunchManager.class) {
-            if (launchManagerInstance == null) {
-                launchManagerInstance = new LaunchManager();
-                launchManagerInstance.serverConfig = serverConfig;
-            }
-        }
-        return launchManagerInstance;
+    public static Map<String, LaunchManager> getLaunchManagersMap() {
+        return launchManagersMap;
     }
 
     private void run(Command command) {
@@ -80,9 +73,9 @@ public class LaunchManager {
         this.command = command;
         // send a message if ballerina home is not set
         if (null == serverConfig.getBallerinaHome()) {
-            pushMessageToClient(launchSession, LauncherConstants.ERROR, LauncherConstants.ERROR, LauncherConstants
+            pushMessageToClient(LauncherConstants.ERROR, LauncherConstants.ERROR, LauncherConstants
                     .INVALID_BAL_PATH_MESSAGE);
-            pushMessageToClient(launchSession, LauncherConstants.ERROR, LauncherConstants.ERROR, LauncherConstants
+            pushMessageToClient(LauncherConstants.ERROR, LauncherConstants.ERROR, LauncherConstants
                     .SET_BAL_PATH_MESSAGE);
             return;
         }
@@ -98,14 +91,14 @@ public class LaunchManager {
             command.setProgram(program);
 
 
-            pushMessageToClient(launchSession, LauncherConstants.EXECUTION_STARTED, LauncherConstants.INFO,
+            pushMessageToClient(LauncherConstants.EXECUTION_STARTED, LauncherConstants.INFO,
                         String.format(LauncherConstants.RUN_MESSAGE, command.getFileName()));
 
             if (command.isDebug()) {
                 MessageDTO debugMessage = new MessageDTO();
                 debugMessage.setCode(LauncherConstants.DEBUG);
                 debugMessage.setPort(command.getPort());
-                pushMessageToClient(launchSession, debugMessage);
+                pushMessageToClient(debugMessage);
             }
 
             // start a new thread to stream command output.
@@ -123,7 +116,7 @@ public class LaunchManager {
             (new Thread(error)).start();
 
         } catch (IOException e) {
-            pushMessageToClient(launchSession, LauncherConstants.EXIT, LauncherConstants.ERROR, e.getMessage());
+            pushMessageToClient(LauncherConstants.EXIT, LauncherConstants.ERROR, e.getMessage());
         }
     }
 
@@ -149,13 +142,13 @@ public class LaunchManager {
                     this.updatePort(line);
                     line = LauncherConstants.SERVER_CONNECTOR_STARTED_AT_HTTP_LOCAL + " " +
                             String.format(LauncherConstants.LOCAL_TRY_IT_URL, LauncherConstants.LOCALHOST, this.port);
-                    pushMessageToClient(launchSession, LauncherConstants.OUTPUT, LauncherConstants.DATA, line);
+                    pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.DATA, line);
                 } else {
-                    pushMessageToClient(launchSession, LauncherConstants.OUTPUT, LauncherConstants.DATA, line);
+                    pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.DATA, line);
                 }
 
             }
-            pushMessageToClient(launchSession, LauncherConstants.EXECUTION_STOPPED, LauncherConstants.INFO,
+            pushMessageToClient(LauncherConstants.EXECUTION_STOPPED, LauncherConstants.INFO,
                     LauncherConstants.END_MESSAGE);
         } catch (IOException e) {
             logger.error("Error while sending output stream to client.", e);
@@ -174,7 +167,7 @@ public class LaunchManager {
             String line = "";
             while ((line = reader.readLine()) != null) {
                 if (this.command.isErrorOutputEnabled()) {
-                    pushMessageToClient(launchSession, LauncherConstants.OUTPUT, LauncherConstants.ERROR, line);
+                    pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.ERROR, line);
                 }
             }
         } catch (IOException e) {
@@ -198,20 +191,20 @@ public class LaunchManager {
             String os = getOperatingSystem();
             if (os == null) {
                 logger.error("unsupported operating system");
-                pushMessageToClient(launchSession, LauncherConstants.UNSUPPORTED_OPERATING_SYSTEM,
+                pushMessageToClient(LauncherConstants.UNSUPPORTED_OPERATING_SYSTEM,
                         LauncherConstants.ERROR, LauncherConstants.TERMINATE_MESSAGE);
                 return;
             }
             Terminator terminator = new TerminatorFactory().getTerminator(os, this.command);
             if (terminator == null) {
                 logger.error("unsupported operating system");
-                pushMessageToClient(launchSession, LauncherConstants.UNSUPPORTED_OPERATING_SYSTEM,
+                pushMessageToClient(LauncherConstants.UNSUPPORTED_OPERATING_SYSTEM,
                         LauncherConstants.ERROR, LauncherConstants.TERMINATE_MESSAGE);
                 return;
             }
 
             terminator.terminate();
-            pushMessageToClient(launchSession, LauncherConstants.EXECUTION_TERMINATED, LauncherConstants.INFO,
+            pushMessageToClient(LauncherConstants.EXECUTION_TERMINATED, LauncherConstants.INFO,
                     LauncherConstants.TERMINATE_MESSAGE);
         }
     }
@@ -243,10 +236,6 @@ public class LaunchManager {
         return null;
     }
 
-    public void setSession(Session session) {
-        this.launchSession = session;
-    }
-
     public void processCommand(String json) {
         Gson gson = new Gson();
         CommandDTO command = gson.fromJson(json, CommandDTO.class);
@@ -270,38 +259,36 @@ public class LaunchManager {
             case LauncherConstants.PING:
                 message = new MessageDTO();
                 message.setCode(LauncherConstants.PONG);
-                pushMessageToClient(launchSession, message);
+                pushMessageToClient(message);
                 break;
             default:
                 message = new MessageDTO();
                 message.setCode(LauncherConstants.INVALID_CMD);
                 message.setMessage(LauncherConstants.MSG_INVALID);
-                pushMessageToClient(launchSession, message);
+                pushMessageToClient(message);
         }
     }
 
     /**
      * Push message to client.
-     *
-     * @param session the debug session
      * @param status  the status
      */
-    public void pushMessageToClient(Session session, MessageDTO status) {
+    public void pushMessageToClient(MessageDTO status) {
         Gson gson = new Gson();
         String json = gson.toJson(status);
         try {
-            session.getBasicRemote().sendText(json);
+            this.launchSession.getBasicRemote().sendText(json);
         } catch (IOException e) {
             logger.error("Error while pushing messages to client.", e);
         }
     }
 
-    public void pushMessageToClient(Session session, String code, String type, String text) {
+    public void pushMessageToClient(String code, String type, String text) {
         MessageDTO message = new MessageDTO();
         message.setCode(code);
         message.setType(type);
         message.setMessage(text);
-        pushMessageToClient(session, message);
+        pushMessageToClient(message);
     }
 
     /**

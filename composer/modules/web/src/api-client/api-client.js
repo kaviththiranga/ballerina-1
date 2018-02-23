@@ -283,8 +283,8 @@ export function getPathSeperator() {
  * @param {Object} tryItPayload The request body.
  * @returns {Object} The response.
  */
-export function invokeTryIt(tryItPayload, protocol) {
-    const endpoint = getServiceEndpoint('try-it') + '/' + protocol;
+export function invokeTryIt(tryItPayload, protocol, sessionID) {
+    const endpoint = getServiceEndpoint('try-it') + '/' + protocol + '?sessionID=' + sessionID;
 
     return new Promise((resolve, reject) => {
         axios.post(endpoint, tryItPayload, { headers: CONTENT_TYPE_TEXT_PLAIN_HEADER })
@@ -299,8 +299,8 @@ export function invokeTryIt(tryItPayload, protocol) {
  * @export
  * @returns {Object} The object.
  */
-export function getTryItUrl() {
-    const endpoint = `${getServiceEndpoint('try-it')}/url`;
+export function getTryItUrl(sessionID) {
+    const endpoint = `${getServiceEndpoint('try-it')}/url?sessionID=${sessionID}`;
     return new Promise((resolve, reject) => {
         axios.get(endpoint, {})
             .then((response) => {
