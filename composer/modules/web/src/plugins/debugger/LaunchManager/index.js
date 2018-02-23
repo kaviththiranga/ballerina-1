@@ -15,7 +15,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
+import { COMMANDS, EVENTS, MSG_TYPES } from './constants';
 import LaunchManger from './LaunchManager';
 
 export default LaunchManger;
+
+export { COMMANDS, EVENTS, MSG_TYPES };
