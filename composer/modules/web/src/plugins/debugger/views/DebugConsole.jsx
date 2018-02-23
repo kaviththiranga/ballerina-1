@@ -54,7 +54,7 @@ class DebuggerConsole extends View {
                 messages: [],
             });
         });
-        this.props.LaunchManager.on('print-message', (message) => {
+        this.props.LaunchManager.on('console-message-received', (message) => {
             messageCache.push(message);
             this.debouncedSetState(messageCache);
         });
@@ -66,7 +66,7 @@ class DebuggerConsole extends View {
      */
     componentDidUnMount() {
         this.props.LaunchManager.off('execution-started');
-        this.props.LaunchManager.off('print-message');
+        this.props.LaunchManager.off('console-message-received');
     }
 
     /**

@@ -17,6 +17,7 @@
  */
 import EventChannel from 'event_channel';
 import log from 'log';
+import { EVENTS, COMMANDS } from './constants';
 
 // See http://tools.ietf.org/html/rfc6455#section-7.4.1
 const WS_NORMAL_CODE = 1000;
@@ -67,7 +68,7 @@ class LaunchChannel extends EventChannel {
      */
     parseMessage(strMessage) {
         const message = JSON.parse(strMessage.data);
-        this.trigger('onmessage', message);
+        this.trigger(EVENTS.MESSAGE_RECEIVED, message);
     }
     /**
      * Sends message to backend
@@ -91,7 +92,7 @@ class LaunchChannel extends EventChannel {
         let reason;
         if (event.code === WS_NORMAL_CODE) {
             reason = 'Normal closure';
-            this.trigger('session-ended');
+            this.trigger(EVENTS.SESSION_ENDED);
             this.debugger.active = false;
             return;
         } else if (event.code === WS_SSL_CODE) {
@@ -108,7 +109,7 @@ class LaunchChannel extends EventChannel {
      */
     onError(error) {
         clearInterval(this.ping);
-        this.trigger('session-error', error);
+        this.trigger(EVENTS.SESSION_ERROR, error);
         // this.launcher.active = false;
         // this.launcher.trigger('session-error');
     }
@@ -119,7 +120,7 @@ class LaunchChannel extends EventChannel {
      */
     onOpen() {
         // this.launcher.active = true;
-        this.trigger('connected');
+        this.trigger(EVENTS.SESSION_STARTED);
         this.startPing();
     }
 
@@ -130,7 +131,7 @@ class LaunchChannel extends EventChannel {
      */
     startPing() {
         this.ping = setInterval(() => {
-            this.sendMessage({ command: 'PING' });
+            this.sendMessage({ command: COMMANDS.PING });
         }, WS_PING_INTERVAL);
     }
 

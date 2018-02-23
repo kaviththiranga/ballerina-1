@@ -17,6 +17,7 @@
  */
 import EventChannel from 'event_channel';
 import LaunchChannel from './LaunchChannel';
+import { COMMANDS, EVENTS, MSG_TYPES } from './constants';
 
 class LaunchManager extends EventChannel {
     constructor() {
@@ -49,22 +50,22 @@ class LaunchManager extends EventChannel {
         this._messages = [];
         let command;
         if (debug) {
-            command = 'DEBUG_PROGRAM';
+            command = COMMANDS.DEBUG_PROGRAM;
         } else {
-            command = 'RUN_PROGRAM';
+            command = COMMANDS.RUN_PROGRAM;
         }
         this.channel = new LaunchChannel(this.endpoint);
-        this.channel.on('connected', () => {
+        this.channel.on(EVENTS.SESSION_STARTED, () => {
             this.sendRunApplicationMessage(file, command, configs);
         });
-        this.channel.on('onmessage', (message) => {
+        this.channel.on(EVENTS.MESSAGE_RECEIVED, (message) => {
             this.processMesssage(message);
         });
     }
 
     stop() {
         const message = {
-            command: 'TERMINATE',
+            command: COMMANDS.TERMINATE,
         };
         this.channel.sendMessage(message);
     }
@@ -77,15 +78,15 @@ class LaunchManager extends EventChannel {
      */
     sendRunSourceMessage(source) {
         this.channel = new LaunchChannel(this.endpoint);
-        this.channel.on('connected', () => {
+        this.channel.on(EVENTS.SESSION_STARTED, () => {
             const message = {
-                command: 'RUN_SOURCE',
+                command: COMMANDS.RUN_SOURCE,
                 source,
                 commandArgs: [],
             };
             this.channel.sendMessage(message);
         });
-        this.channel.on('onmessage', (message) => {
+        this.channel.on(EVENTS.MESSAGE_RECEIVED, (message) => {
             this.processMesssage(message);
         });
     }
@@ -114,41 +115,42 @@ class LaunchManager extends EventChannel {
      */
     processMesssage(message) {
         this._messages.push(message);
-        if (message.code === 'OUTPUT') {
+        if (message.code === MSG_TYPES.OUTPUT) {
             if (message.message && message.message.endsWith(this.debugPort)) {
-                this.trigger('debug-active', this.debugPort);
+                this.trigger(EVENTS.DEBUG_STARTED, this.debugPort);
                 return;
             }
         }
-        if (message.code === 'EXECUTION_STARTED') {
+        if (message.code === MSG_TYPES.EXECUTION_STARTED) {
             this.active = true;
-            this.trigger('execution-started');
+            this.trigger(EVENTS.EXECUTION_STARTED);
         }
-        if (message.code === 'EXECUTION_STOPPED' || message.code === 'EXECUTION_TERMINATED') {
+        if (message.code === MSG_TYPES.EXECUTION_STOPPED
+                || message.code === MSG_TYPES.EXECUTION_TERMINATED) {
             this.active = false;
-            this.trigger('execution-ended');
+            this.trigger(EVENTS.EXECUTION_ENDED);
             this.channel.close();
         }
-        if (message.code === 'DEBUG_PORT') {
+        if (message.code === MSG_TYPES.DEBUG_PORT) {
             this.debugPort = message.port;
             return;
         }
-        if (message.code === 'EXIT') {
+        if (message.code === MSG_TYPES.EXIT) {
             this.active = false;
-            this.trigger('session-ended');
+            this.trigger(EVENTS.SESSION_ENDED);
             // close the current channel.
             this.channel.close();
             // this.tryItUrl = undefined;
         }
-        if (message.code === 'PONG') {
+        if (message.code === MSG_TYPES.PONG) {
             // if a pong message is received we will ignore.
             return;
         }
-        if (message.code === 'INVALID_CMD') {
+        if (message.code === MSG_TYPES.INVALID_CMD) {
             // ignore and return.
             return;
         }
-        this.trigger('print-message', message);
+        this.trigger(EVENTS.CONSOLE_MESSAGE_RECEIVED, message);
     }
 }
 
