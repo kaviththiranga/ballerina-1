@@ -51,9 +51,9 @@
     </developers>
 
     <scm>
-        <url>https://github.com/ballerinalang/ballerina.git</url>
-        <developerConnection>scm:git:https://github.com/ballerinalang/ballerina.git</developerConnection>
-        <connection>scm:git:https://github.com/ballerinalang/ballerina.git</connection>
+        <url>https://github.com/kaviththiranga/ballerina-1.git</url>
+        <developerConnection>scm:git:https://github.com/kaviththiranga/ballerina-1.git</developerConnection>
+        <connection>scm:git:https://github.com/kaviththiranga/ballerina-1.git</connection>
         <tag>HEAD</tag>
     </scm>
 
@@ -678,83 +678,110 @@
         <profile>
             <id>wso2-release</id>
             <build>
-                <plugins>
-                    <!-- Create a source-release artifact that contains the fully buildable
-                         project directory source structure. This is the artifact which is
-                         the official subject of any release vote. -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-assembly-plugin</artifactId>
-                        <dependencies>
-                            <dependency>
-                                <groupId>org.apache.apache.resources</groupId>
-                                <artifactId>apache-source-release-assembly-descriptor</artifactId>
-                                <version>${apache.source.release.assembly.descriptor.version}</version>
-                            </dependency>
-                        </dependencies>
-                        <executions>
-                            <execution>
-                                <id>source-release-assembly</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>single</goal>
-                                </goals>
-                                <configuration>
-                                    <runOnlyAtExecutionRoot>true</runOnlyAtExecutionRoot>
-                                    <descriptorRefs>
-                                        <descriptorRef>${sourceReleaseAssemblyDescriptor}</descriptorRef>
-                                    </descriptorRefs>
-                                    <tarLongFileMode>gnu</tarLongFileMode>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <!-- We want to deploy the artifact to a staging location for perusal -->
-                    <plugin>
-                        <inherited>true</inherited>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-deploy-plugin</artifactId>
-                        <configuration>
-                            <updateReleaseInfo>true</updateReleaseInfo>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-source-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>attach-sources</id>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>attach-javadocs</id>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <!-- We want to sign the artifact, the POM, and all attached artifacts -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <artifactId>maven-release-plugin</artifactId>
+                            <configuration>
+                                <preparationGoals>-Pwso2-release build-helper:parse-version replacer:replace scm:checkin verify</preparationGoals>
+                                <completionGoals>-Pwso2-release build-helper:parse-version replacer:replace scm:checkin verify</completionGoals>
+                            </configuration>
+                        </plugin>
+                        <plugin>
+                            <artifactId>maven-scm-plugin</artifactId>
+                            <configuration>
+                                <message>[maven-scm-plugin] update versions in non-pom files to ${project.version}.</message>
+                                <includes>
+                                </includes>
+                            </configuration>
+                        </plugin>
+                        <plugin>
+                            <groupId>org.codehaus.mojo</groupId>
+                            <artifactId>build-helper-maven-plugin</artifactId>
+                            <version>${build.helper.maven.plugin.version}</version>
+                            <configuration>
+                                <propertyPrefix>parsedVersion</propertyPrefix>
+                            </configuration>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+                <!--<plugins>-->
+                    <!--&lt;!&ndash; Create a source-release artifact that contains the fully buildable-->
+                         <!--project directory source structure. This is the artifact which is-->
+                         <!--the official subject of any release vote. &ndash;&gt;-->
+                    <!--<plugin>-->
+                        <!--<groupId>org.apache.maven.plugins</groupId>-->
+                        <!--<artifactId>maven-assembly-plugin</artifactId>-->
+                        <!--<dependencies>-->
+                            <!--<dependency>-->
+                                <!--<groupId>org.apache.apache.resources</groupId>-->
+                                <!--<artifactId>apache-source-release-assembly-descriptor</artifactId>-->
+                                <!--<version>${apache.source.release.assembly.descriptor.version}</version>-->
+                            <!--</dependency>-->
+                        <!--</dependencies>-->
+                        <!--<executions>-->
+                            <!--<execution>-->
+                                <!--<id>source-release-assembly</id>-->
+                                <!--<phase>package</phase>-->
+                                <!--<goals>-->
+                                    <!--<goal>single</goal>-->
+                                <!--</goals>-->
+                                <!--<configuration>-->
+                                    <!--<runOnlyAtExecutionRoot>true</runOnlyAtExecutionRoot>-->
+                                    <!--<descriptorRefs>-->
+                                        <!--<descriptorRef>${sourceReleaseAssemblyDescriptor}</descriptorRef>-->
+                                    <!--</descriptorRefs>-->
+                                    <!--<tarLongFileMode>gnu</tarLongFileMode>-->
+                                <!--</configuration>-->
+                            <!--</execution>-->
+                        <!--</executions>-->
+                    <!--</plugin>-->
+                    <!--&lt;!&ndash; We want to deploy the artifact to a staging location for perusal &ndash;&gt;-->
+                    <!--<plugin>-->
+                        <!--<inherited>true</inherited>-->
+                        <!--<groupId>org.apache.maven.plugins</groupId>-->
+                        <!--<artifactId>maven-deploy-plugin</artifactId>-->
+                        <!--<configuration>-->
+                            <!--<updateReleaseInfo>true</updateReleaseInfo>-->
+                        <!--</configuration>-->
+                    <!--</plugin>-->
+                    <!--<plugin>-->
+                        <!--<groupId>org.apache.maven.plugins</groupId>-->
+                        <!--<artifactId>maven-source-plugin</artifactId>-->
+                        <!--<executions>-->
+                            <!--<execution>-->
+                                <!--<id>attach-sources</id>-->
+                                <!--<goals>-->
+                                    <!--<goal>jar</goal>-->
+                                <!--</goals>-->
+                            <!--</execution>-->
+                        <!--</executions>-->
+                    <!--</plugin>-->
+                    <!--<plugin>-->
+                        <!--<groupId>org.apache.maven.plugins</groupId>-->
+                        <!--<artifactId>maven-javadoc-plugin</artifactId>-->
+                        <!--<executions>-->
+                            <!--<execution>-->
+                                <!--<id>attach-javadocs</id>-->
+                                <!--<goals>-->
+                                    <!--<goal>jar</goal>-->
+                                <!--</goals>-->
+                            <!--</execution>-->
+                        <!--</executions>-->
+                    <!--</plugin>-->
+                    <!--&lt;!&ndash; We want to sign the artifact, the POM, and all attached artifacts &ndash;&gt;-->
+                    <!--<plugin>-->
+                        <!--<groupId>org.apache.maven.plugins</groupId>-->
+                        <!--<artifactId>maven-gpg-plugin</artifactId>-->
+                        <!--<executions>-->
+                            <!--<execution>-->
+                                <!--<goals>-->
+                                    <!--<goal>sign</goal>-->
+                                <!--</goals>-->
+                            <!--</execution>-->
+                        <!--</executions>-->
+                    <!--</plugin>-->
+                <!--</plugins>-->
             </build>
             <modules>
                 <module>compiler/ballerina-lang</module>
@@ -1036,6 +1063,11 @@
                     <version>${maven.remote.resources.plugin.version}</version>
                 </plugin>
                 <plugin>
+                    <groupId>com.google.code.maven-replacer-plugin</groupId>
+                    <artifactId>replacer</artifactId>
+                    <version>${maven.replacer.plugin.version}</version>
+                </plugin>
+                <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-resources-plugin</artifactId>
                     <version>${maven.resources.plugin.version}</version>
@@ -1273,6 +1305,7 @@
         <maven.surefire.plugin.version>2.19.1</maven.surefire.plugin.version>
         <maven.exec.plugin.version>1.6.0</maven.exec.plugin.version>
         <maven.replacer.plugin.version>1.5.3</maven.replacer.plugin.version>
+        <build.helper.maven.plugin.version>1.8</build.helper.maven.plugin.version>
 
         <apache.rat.plugin.version>0.11</apache.rat.plugin.version>
         <clirr.maven.plugin.version>2.7</clirr.maven.plugin.version>

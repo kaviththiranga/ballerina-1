@@ -170,31 +170,42 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>com.google.code.maven-replacer-plugin</groupId>
-                <artifactId>replacer</artifactId>
-                <version>${maven.replacer.plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>replace-version</id>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>replace</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <includes>
-                        <include>${basedir}/package.json</include>
-                    </includes>
-                    <replacements>
-                        <replacement>
-                            <token>"version": "(.*?)",</token>
-                            <value>"version": "${project.version}",</value>
-                        </replacement>
-                    </replacements>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>wso2-release</id>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>com.google.code.maven-replacer-plugin</groupId>
+                            <artifactId>replacer</artifactId>
+                            <configuration>
+                                <includes>
+                                    <include>${basedir}/package.json</include>
+                                </includes>
+                                <replacements>
+                                    <replacement>
+                                        <token>"version": "(.*?)",</token>
+                                        <value>"version": "\${parsedVersion.majorVersion}.\${parsedVersion.minorVersion}.\${parsedVersion.incrementalVersion}",</value>
+                                    </replacement>
+                                </replacements>
+                            </configuration>
+                        </plugin>
+                        <plugin>
+                            <artifactId>maven-scm-plugin</artifactId>
+                            <configuration>
+                                <message>[maven-scm-plugin] update version of vscode plugin to ${project.version}.</message>
+                                <includes>
+                                    package.json
+                                </includes>
+                            </configuration>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
+        </profile>
+    </profiles>
 </project>

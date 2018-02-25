@@ -119,77 +119,9 @@
                             </arguments>
                         </configuration>
                     </execution>
-                    <!--Commenting as these are integration tests and should be moved to tools.-->
-                    <!--<execution>-->
-                        <!--<id>npm run test (test)</id>-->
-                        <!--<goals>-->
-                            <!--<goal>exec</goal>-->
-                        <!--</goals>-->
-                        <!--<phase>test</phase>-->
-                        <!--<configuration>-->
-                            <!--<executable>npm</executable>-->
-                            <!--<arguments>-->
-                                <!--<argument>run</argument>-->
-                                <!--<argument>test</argument>-->
-                                <!--<argument>&#45;&#45;</argument>-->
-                                <!--<argument>&#45;&#45;skipTests=${maven.test.skip}</argument>-->
-                            <!--</arguments>-->
-                        <!--</configuration>-->
-                    <!--</execution>-->
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <version>${build.helper.maven.plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>parse-version</id>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>parse-version</goal>
-                        </goals>
-                        <configuration>
-                            <propertyPrefix>parsedVersion</propertyPrefix>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>com.google.code.maven-replacer-plugin</groupId>
-                <artifactId>replacer</artifactId>
-                <version>${replacer.plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>replace-versions</id>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>replace</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <includes>
-                        <include>${basedir}/package.json</include>
-                        <include>${basedir}/src/plugins/help/dialogs/about-dialog.jsx</include>
-                        <include>${basedir}/src/config.js</include>
-                    </includes>
-                    <replacements>
-                        <replacement>
-                            <token>"version": "(.*?)",</token>
-                            <value>"version": "\${parsedVersion.majorVersion}.\${parsedVersion.minorVersion}.\${parsedVersion.incrementalVersion}",</value>
-                        </replacement>
-                        <replacement>
-                            <token>className="version"&gt;v(.*?)&lt;</token>
-                            <value>className="version"&gt;v\${parsedVersion.majorVersion}.\${parsedVersion.minorVersion}.\${parsedVersion.incrementalVersion}.\${parsedVersion.qualifier}&lt;</value>
-                        </replacement>
-                        <replacement>
-                            <token>https://ballerinalang.org/docs/api/(.*?)/</token>
-                            <value>https://ballerinalang.org/docs/api/\${parsedVersion.majorVersion}.\${parsedVersion.minorVersion}.\${parsedVersion.incrementalVersion}/</value>
-                        </replacement>
-                    </replacements>
-                </configuration>
-            </plugin>
+
         </plugins>
     </build>
 
@@ -207,13 +139,56 @@
                 <skipClientSideBuild>true</skipClientSideBuild>
             </properties>
         </profile>
+        <profile>
+            <id>wso2-release</id>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>com.google.code.maven-replacer-plugin</groupId>
+                            <artifactId>replacer</artifactId>
+                            <configuration>
+                                <includes>
+                                    <include>${project.basedir}/package.json</include>
+                                    <include>${project.basedir}/src/plugins/help/dialogs/about-dialog.jsx</include>
+                                    <include>${project.basedir}/src/config.js</include>
+                                </includes>
+                                <replacements>
+                                    <replacement>
+                                        <token>"version": "(.*?)",</token>
+                                        <value>"version": "\${parsedVersion.majorVersion}.\${parsedVersion.minorVersion}.\${parsedVersion.incrementalVersion}",</value>
+                                    </replacement>
+                                    <replacement>
+                                        <token>className='version'>v(.*?)&lt;</token>
+                                        <value>className='version'&gt;v\${project.version}&lt;</value>
+                                    </replacement>
+                                    <replacement>
+                                        <token>https://ballerinalang.org/docs/api/(.*?)/</token>
+                                        <value>https://ballerinalang.org/docs/api/\${parsedVersion.majorVersion}.\${parsedVersion.minorVersion}.\${parsedVersion.incrementalVersion}/</value>
+                                    </replacement>
+                                </replacements>
+                            </configuration>
+                        </plugin>
+                        <plugin>
+                            <artifactId>maven-scm-plugin</artifactId>
+                            <configuration>
+                                <message>[maven-scm-plugin] update composer front-end component versions to ${project.version}.</message>
+                                <includes>
+                                    README.md,
+                                    ballerina-base-image/README.md,
+                                    ballerina-base-image/build.sh
+                                </includes>
+                            </configuration>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
+        </profile>
     </profiles>
 
     <properties>
         <maven.test.skip>false</maven.test.skip>
         <npm.build.command>build</npm.build.command>
-        <build.helper.maven.plugin.version>1.8</build.helper.maven.plugin.version>
-        <replacer.plugin.version>1.5.3</replacer.plugin.version>
         <skipClientSideBuild>false</skipClientSideBuild>
     </properties>
 </project>
