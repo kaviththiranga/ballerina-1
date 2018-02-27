@@ -31,6 +31,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import javax.websocket.Session;
@@ -95,6 +97,7 @@ public class LaunchManager {
         Process buildProcess;
         String[] cmdArray = command.getBuildCommandArray();
         String[] envVars = command.getEnvVariables();
+        Instant buildStart = Instant.now();
         if (command.getPackageDir() == null) {
             buildProcess = Runtime.getRuntime().exec(cmdArray, envVars);
         } else {
@@ -116,8 +119,10 @@ public class LaunchManager {
                     while ((line = reader.readLine()) != null) {
                         // TODO
                     }
+                    Instant buildStop = Instant.now();
+                    Duration buildTime = Duration.between(buildStart, buildStop);
                     pushMessageToClient(LauncherConstants.BUILD_STOPPED, LauncherConstants.INFO,
-                            LauncherConstants.BUILD_END_MESSAGE);
+                            LauncherConstants.BUILD_END_MESSAGE + buildTime.toMillis() + " milliseconds");
                     launchProgram();
                 } catch (IOException e) {
                     logger.error("Error while sending output stream to client.", e);

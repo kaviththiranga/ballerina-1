@@ -53,7 +53,7 @@ public class LauncherConstants {
     public static final String DEBUG = "DEBUG_PORT";
     public static final String EXIT = "EXIT";
     public static final String BUILD_START_MESSAGE = "building program";
-    public static final String BUILD_END_MESSAGE = "building program completed";
+    public static final String BUILD_END_MESSAGE = "building program completed in ";
     public static final String RUN_MESSAGE = "running program";
     public static final String END_MESSAGE = "running program completed";
     public static final String DEPLOYING_SERVICES = "deploying services";
