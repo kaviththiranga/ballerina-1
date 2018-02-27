@@ -23,18 +23,25 @@ import org.ballerinalang.composer.server.core.ServerConfig;
 import org.ballerinalang.composer.service.ballerina.launcher.service.dto.CommandDTO;
 import org.ballerinalang.composer.service.ballerina.launcher.service.dto.MessageDTO;
 import org.ballerinalang.composer.service.ballerina.launcher.service.util.LaunchUtils;
+import org.ballerinalang.model.tree.TopLevelNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wso2.ballerinalang.compiler.tree.BLangAnnotationAttachment;
+import org.wso2.ballerinalang.compiler.tree.BLangService;
+import org.wso2.ballerinalang.compiler.tree.expressions.BLangAnnotAttachmentAttribute;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
 import java.nio.charset.Charset;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.websocket.Session;
 
 /**
@@ -204,8 +211,11 @@ public class LaunchManager {
                             LauncherConstants.DEPLOYING_SERVICES);
                 } else if (line.startsWith(LauncherConstants.SERVER_CONNECTOR_STARTED_AT_HTTP_LOCAL)) {
                     this.updatePort(line);
+                    String serviceURL = "http://" + InetAddress.getLocalHost().getHostAddress() + ":" + this.port;
                     pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.INFO,
-                            LauncherConstants.STARTED_SERVICES);
+                            LauncherConstants.STARTED_SERVICES + serviceURL);
+                    pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.DATA,
+                            LauncherConstants.TRY_IT_MSG + getCURLCmd(serviceURL));
                 } else {
                     pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.DATA, line);
                 }
@@ -219,6 +229,37 @@ public class LaunchManager {
                 IOUtils.closeQuietly(reader);
             }
         }
+    }
+
+    private String getCURLCmd(String serviceURL) {
+        List<TopLevelNode> topLevelNodes = this.command.getCompilationUnit().getTopLevelNodes();
+        Optional<TopLevelNode> firstServiceQuery = topLevelNodes.stream()
+                .filter(topLevelNode -> topLevelNode instanceof BLangService)
+                .findFirst();
+        if (firstServiceQuery.isPresent()) {
+            BLangService serviceNode = (BLangService) firstServiceQuery.get();
+            Optional<BLangAnnotationAttachment> httpConfigAnnoationQuery =
+                    serviceNode.getAnnotationAttachments()
+                    .stream()
+                    .filter(annotation ->
+                            annotation.annotationName.getValue().equals("configuration")
+                            && annotation.pkgAlias.getValue().equals("http")
+                    )
+                    .findFirst();
+            if (httpConfigAnnoationQuery.isPresent()) {
+                BLangAnnotationAttachment httpConfigAnnotation = httpConfigAnnoationQuery.get();
+                Optional<BLangAnnotAttachmentAttribute> basePathAnnotationQuery = httpConfigAnnotation.getAttributes()
+                        .stream()
+                        .filter(attrb -> attrb.name.getValue().equals("basePath"))
+                        .findFirst();
+                if (basePathAnnotationQuery.isPresent()) {
+                    BLangAnnotAttachmentAttribute basePathAttrib = basePathAnnotationQuery.get();
+                    String basePath = basePathAttrib.getValue().getValue().toString();
+                    return serviceURL + basePath;
+                }
+            }
+        }
+        return serviceURL;
     }
 
     public void streamError() {

@@ -68,6 +68,7 @@ public class Command {
     private String packagePath = null;
     private boolean buildAndRun = true;
     private boolean hasServices = false;
+    private BLangCompilationUnit compilationUnit;
     private static final Logger logger = LoggerFactory.getLogger(Command.class);
 
     public Command(String fileName, String filePath, boolean debug) {
@@ -176,8 +177,8 @@ public class Command {
         BallerinaFile ballerinaFile = ParserUtils.getBallerinaFile(filePath, fileName);
 
         // Assuming there will be only one compilation unit in the list, I'm getting the first element from the list
-        BLangCompilationUnit currentBLangCompilationUnit = ballerinaFile.getBLangPackage().compUnits.get(0);
-        List<TopLevelNode> topLevelNodes = currentBLangCompilationUnit.getTopLevelNodes();
+        compilationUnit = ballerinaFile.getBLangPackage().compUnits.get(0);
+        List<TopLevelNode> topLevelNodes = compilationUnit.getTopLevelNodes();
         // filter out the BLangPackageDeclaration from top level nodes list
         List<TopLevelNode> bLangPackageDeclarations = topLevelNodes.stream()
                 .filter(topLevelNode -> topLevelNode instanceof BLangPackageDeclaration).collect(Collectors.toList());
@@ -323,5 +324,9 @@ public class Command {
 
     public String getBuildOutputFile() {
         return buildOutputFile;
+    }
+
+    public BLangCompilationUnit getCompilationUnit() {
+        return compilationUnit;
     }
 }

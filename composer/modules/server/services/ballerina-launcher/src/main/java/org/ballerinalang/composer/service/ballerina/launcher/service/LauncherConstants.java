@@ -57,7 +57,7 @@ public class LauncherConstants {
     public static final String RUN_MESSAGE = "running program";
     public static final String END_MESSAGE = "running program completed";
     public static final String DEPLOYING_SERVICES = "deploying services";
-    public static final String STARTED_SERVICES = "started services";
+    public static final String STARTED_SERVICES = "started services at ";
     public static final String INVALID_BAL_PATH_MESSAGE = "ERROR: Unable to run program, ballerina runtime cannot be " +
                                                           "found.";
     public static final String EXECUTION_TERMINATED = "EXECUTION_TERMINATED";
@@ -73,4 +73,5 @@ public class LauncherConstants {
     public static final String INFO = "INFO";
     public static final String ERROR = "ERROR";
     public static final String DATA = "DATA";
+    public static final String TRY_IT_MSG = "Try with: curl -X POST --data \"Hello\" ";
 }
