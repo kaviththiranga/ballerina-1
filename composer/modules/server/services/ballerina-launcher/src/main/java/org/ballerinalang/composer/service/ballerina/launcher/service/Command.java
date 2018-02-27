@@ -17,6 +17,7 @@
 package org.ballerinalang.composer.service.ballerina.launcher.service;
 
 import org.apache.commons.io.FileUtils;
+import org.ballerinalang.composer.server.core.ServerUtils;
 import org.ballerinalang.composer.service.ballerina.launcher.service.util.LaunchUtils;
 import org.ballerinalang.composer.service.ballerina.parser.service.model.BallerinaFile;
 import org.ballerinalang.composer.service.ballerina.parser.service.util.ParserUtils;
@@ -25,9 +26,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.ballerinalang.compiler.tree.BLangCompilationUnit;
 import org.wso2.ballerinalang.compiler.tree.BLangPackageDeclaration;
+import org.wso2.ballerinalang.compiler.tree.BLangService;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,10 +43,15 @@ import java.util.stream.Collectors;
  */
 public class Command {
 
+    private static final String NETTY_TRANSPORTS_YML_TEMPLATE = "/netty-transports.yml.template";
+    private static final String LISTENER_PORT = "$LISTENER_PORT";
+    private static final int PORT_SEED = 9090;
+    
     private String fileName = "";
     private String filePath = "";
     private boolean debug = false;
     private String[] commandArgs;
+    private String configPath;
     private int port;
     private Process program;
     private boolean errorOutputEnabled = true;
@@ -105,6 +114,19 @@ public class Command {
         this.commandArgs = commandArgs;
     }
 
+
+    /**
+     * Construct the env variables to be set in runtime process.
+     * @return String[] env array
+     */
+    public String[] getEnvVariables() {
+        List<String> envVarList = new ArrayList<>();
+        if (configPath != null) {
+            envVarList.add("BALLERINA_TRANSPORT_CONFIG=" + configPath);
+        }
+        return envVarList.toArray(new String[0]);
+    }
+
     /**
      * Construct the command array to be executed.
      * @return String[] command array
@@ -112,16 +134,6 @@ public class Command {
     public String[] getCommandArray() {
         List<String> commandList = new ArrayList<>();
         String scriptLocation = getScriptLocation();
-
-        // path to ballerina
-        String ballerinaExecute = System.getProperty("ballerina.home") + File.separator + "bin" + File.separator +
-                                  "ballerina";
-
-        if (LaunchUtils.isWindows()) {
-            ballerinaExecute += ".bat";
-        }
-        commandList.add(ballerinaExecute);
-        commandList.add("run");
 
         BallerinaFile ballerinaFile = ParserUtils.getBallerinaFile(filePath, fileName);
 
@@ -144,6 +156,21 @@ public class Command {
                 }
             }
         }
+        List<TopLevelNode> serviceDeclarations = topLevelNodes.stream()
+                .filter(topLevelNode -> topLevelNode instanceof BLangService).collect(Collectors.toList());
+        if (!serviceDeclarations.isEmpty()) {
+            this.generateListenerConfig();
+        }
+
+        // path to ballerina
+        String ballerinaExecute = System.getProperty("ballerina.home") + File.separator + "bin" + File.separator +
+                "ballerina";
+
+        if (LaunchUtils.isWindows()) {
+            ballerinaExecute += ".bat";
+        }
+        commandList.add(ballerinaExecute);
+        commandList.add("run");
 
         if (packagePath == null) {
             commandList.add(scriptLocation);
@@ -212,6 +239,27 @@ public class Command {
             this.filePath = tmpFile.getParent();
         } catch (IOException e) {
             logger.error("Unable to save command content");
+            // @todo report error
+        }
+    }
+
+    /**
+     * Creates a temporary netty config file with a different port.
+     */
+    protected void generateListenerConfig() {
+
+        try {
+            URL resource = Command.class.getResource(NETTY_TRANSPORTS_YML_TEMPLATE);
+
+            String config = new String(Files.readAllBytes(Paths.get(resource.toURI())));
+            config = config.replace(LISTENER_PORT, "" + ServerUtils.getAvailablePort(PORT_SEED));
+            File tmpFile = null;
+            // We will create a tmp yaml file and use it as listener config.
+            tmpFile = File.createTempFile("netty-transports", ".yml");
+            FileUtils.writeStringToFile(tmpFile, config);
+            this.configPath = tmpFile.getAbsolutePath();
+        } catch (Exception e) {
+            logger.error("Unable to create listener config");
             // @todo report error
         }
     }

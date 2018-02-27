@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.ballerinalang.composer.server.core.Server;
 import org.ballerinalang.composer.server.core.ServerConfig;
+import org.ballerinalang.composer.server.core.ServerUtils;
 import org.ballerinalang.composer.server.launcher.browser.BrowserLauncher;
 import org.ballerinalang.composer.server.launcher.command.ServerCommand;
 import org.ballerinalang.composer.server.launcher.log.LogManagerUtils;
@@ -30,8 +31,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.net.DatagramSocket;
-import java.net.ServerSocket;
 
 /**
  * Launcher for ballerina composer backend server.
@@ -110,10 +109,10 @@ public class ServerLauncher {
         }
         // if no port is provided via cmd args or config file, try to grab an open port
         if (config.getPort() == 0) {
-            config.setPort(getAvailablePort(DEFAULT_PORT));
+            config.setPort(ServerUtils.getAvailablePort(DEFAULT_PORT));
         }
         // if the selected port is not available, print an error & exit
-        if (!isPortAvailable(config.getPort())) {
+        if (!ServerUtils.isPortAvailable(config.getPort())) {
             PrintStream err = System.err;
             err.println("Error: Looks like you may be running the Ballerina composer already ?");
             err.println(String.format("In any case, it appears someone is already using port %d, " +
@@ -161,52 +160,4 @@ public class ServerLauncher {
         out.println("");
     }
 
-    /**
-     * Checks to see if a specific port is available.
-     *
-     * @param port the port number to check for availability
-     * @return <tt>true</tt> if the port is available, or <tt>false</tt> if not
-     * @throws IllegalArgumentException is thrown if the port number is out of range
-     */
-    private static boolean isPortAvailable(int port) {
-        ServerSocket ss = null;
-        DatagramSocket ds = null;
-        try {
-            ss = new ServerSocket(port);
-            ss.setReuseAddress(true);
-            ds = new DatagramSocket(port);
-            ds.setReuseAddress(true);
-            return true;
-        } catch (IOException e) {
-            // Do nothing
-        } finally {
-            if (ds != null) {
-                ds.close();
-            }
-
-            if (ss != null) {
-                try {
-                    ss.close();
-                } catch (IOException e) {
-                    /* should not be thrown */
-                }
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * return a available port from the seed port.
-     * If the seed port is available it will return that.
-     *
-     * @param seed to check port
-     * @return seed
-     */
-    private static int getAvailablePort(int seed) {
-        while (!isPortAvailable(seed)) {
-            seed++;
-        }
-        return seed;
-    }
 }

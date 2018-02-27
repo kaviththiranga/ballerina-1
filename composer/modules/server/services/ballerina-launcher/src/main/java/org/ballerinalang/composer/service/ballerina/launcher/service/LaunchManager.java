@@ -82,10 +82,11 @@ public class LaunchManager {
 
         try {
             String[] cmdArray = command.getCommandArray();
+            String[] envVars = command.getEnvVariables();
             if (command.getPackageDir() == null) {
-                program = Runtime.getRuntime().exec(cmdArray);
+                program = Runtime.getRuntime().exec(cmdArray, envVars);
             } else {
-                program = Runtime.getRuntime().exec(cmdArray, null, new File(command.getPackageDir()));
+                program = Runtime.getRuntime().exec(cmdArray, envVars, new File(command.getPackageDir()));
             }
 
             command.setProgram(program);
