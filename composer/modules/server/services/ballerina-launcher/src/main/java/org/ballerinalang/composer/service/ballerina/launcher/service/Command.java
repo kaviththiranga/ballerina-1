@@ -215,8 +215,7 @@ public class Command {
         commandList.add(RUN);
         if (shouldBuildAndRun()) {
             commandList.add(buildOutputFile);
-        }
-        else if (packagePath == null) {
+        } else if (packagePath == null) {
             commandList.add(getBalSourceLocation());
         } else {
             commandList.add(packagePath);
@@ -241,7 +240,7 @@ public class Command {
     public String getCommandIdentifier() {
         if (shouldBuildAndRun()) {
             return this.buildOutputFile;
-        }else if (this.packagePath == null) {
+        } else if (this.packagePath == null) {
             return this.getBalSourceLocation();
         } else {
             return this.packagePath;

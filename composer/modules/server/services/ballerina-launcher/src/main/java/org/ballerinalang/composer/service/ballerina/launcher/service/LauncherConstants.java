@@ -52,24 +52,23 @@ public class LauncherConstants {
     public static final String EXECUTION_STOPPED = "EXECUTION_STOPPED";
     public static final String DEBUG = "DEBUG_PORT";
     public static final String EXIT = "EXIT";
-    public static final String BUILD_START_MESSAGE = "Building %s";
-    public static final String BUILD_END_MESSAGE = "Building %s completed";
-    public static final String RUN_MESSAGE = "Running %s";
-    public static final String END_MESSAGE = "Execution Ended.";
+    public static final String BUILD_START_MESSAGE = "building program";
+    public static final String BUILD_END_MESSAGE = "building program completed";
+    public static final String RUN_MESSAGE = "running program";
+    public static final String END_MESSAGE = "running program completed";
+    public static final String DEPLOYING_SERVICES = "deploying services";
+    public static final String STARTED_SERVICES = "started services";
     public static final String INVALID_BAL_PATH_MESSAGE = "ERROR: Unable to run program, ballerina runtime cannot be " +
                                                           "found.";
     public static final String EXECUTION_TERMINATED = "EXECUTION_TERMINATED";
     public static final String SET_BAL_PATH_MESSAGE = "Please set BALLERINA_HOME environment variable pointing to " +
                                                       "ballerina runtime.";
-
+    public static final String DEPLOYING_SERVICES_IN_MESSAGE = "ballerina: deploying service(s) in";
     public static final String SERVER_CONNECTOR_STARTED_AT_HTTP_LOCAL = "ballerina: started HTTP/WS server connector";
-    // TODO: Update cloud URL.
-    public static final String SERVER_CONNECTOR_STARTED_AT_HTTP_CLOUD = "ballerina: started HTTP/WS server connector";
-    public static final String TERMINATE_MESSAGE = "Program Terminated.";
+    public static final String TERMINATE_MESSAGE = "program terminated";
     public static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system";
     public static final String LOCAL_TRY_IT_URL = "http://%s:%s";
 
-    
     //message types
     public static final String INFO = "INFO";
     public static final String ERROR = "ERROR";

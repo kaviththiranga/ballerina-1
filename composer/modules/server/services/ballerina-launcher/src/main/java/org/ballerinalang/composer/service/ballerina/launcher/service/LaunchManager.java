@@ -103,7 +103,7 @@ public class LaunchManager {
         command.setProcess(buildProcess);
 
         pushMessageToClient(LauncherConstants.BUILD_STARTED, LauncherConstants.INFO,
-                String.format(LauncherConstants.BUILD_START_MESSAGE, command.getFileName()));
+                LauncherConstants.BUILD_START_MESSAGE);
 
         new Thread(new Runnable() {
             @Override
@@ -117,7 +117,7 @@ public class LaunchManager {
                         // TODO
                     }
                     pushMessageToClient(LauncherConstants.BUILD_STOPPED, LauncherConstants.INFO,
-                            String.format(LauncherConstants.BUILD_END_MESSAGE, command.getFileName()));
+                            LauncherConstants.BUILD_END_MESSAGE);
                     launchProgram();
                 } catch (IOException e) {
                     logger.error("Error while sending output stream to client.", e);
@@ -163,8 +163,7 @@ public class LaunchManager {
         command.setProcess(launchProcess);
 
         pushMessageToClient(LauncherConstants.EXECUTION_STARTED, LauncherConstants.INFO,
-                String.format(LauncherConstants.RUN_MESSAGE, command.shouldBuildAndRun() ?
-                        command.getBuildOutputFile() : command.getFileName()));
+                LauncherConstants.RUN_MESSAGE);
 
         if (command.isDebug()) {
             MessageDTO debugMessage = new MessageDTO();
@@ -195,26 +194,16 @@ public class LaunchManager {
                     .defaultCharset()));
             String line = "";
             while ((line = reader.readLine()) != null) {
-                // improve "server connector started" log message to have the service URL in it.
-                // This is to handle the cloud use case.
-                if (line.startsWith(LauncherConstants.SERVER_CONNECTOR_STARTED_AT_HTTP_CLOUD)
-                        && getServerStartedURL() != null) {
-                    this.updatePort(getServerStartedURL());
-                    line = LauncherConstants.SERVER_CONNECTOR_STARTED_AT_HTTP_CLOUD + " "
-                            + getServerStartedURL();
-                }
-
-                // This is to handle local service run use case.
-                if (line.startsWith(LauncherConstants.SERVER_CONNECTOR_STARTED_AT_HTTP_LOCAL)
-                        && getServerStartedURL() == null) {
+                if (line.startsWith(LauncherConstants.DEPLOYING_SERVICES_IN_MESSAGE)) {
+                    pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.INFO,
+                            LauncherConstants.DEPLOYING_SERVICES);
+                } else if (line.startsWith(LauncherConstants.SERVER_CONNECTOR_STARTED_AT_HTTP_LOCAL)) {
                     this.updatePort(line);
-                    line = LauncherConstants.SERVER_CONNECTOR_STARTED_AT_HTTP_LOCAL + " " +
-                            String.format(LauncherConstants.LOCAL_TRY_IT_URL, LauncherConstants.LOCALHOST, this.port);
-                    pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.DATA, line);
+                    pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.INFO,
+                            LauncherConstants.STARTED_SERVICES);
                 } else {
                     pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.DATA, line);
                 }
-
             }
             pushMessageToClient(LauncherConstants.EXECUTION_STOPPED, LauncherConstants.INFO,
                     LauncherConstants.END_MESSAGE);

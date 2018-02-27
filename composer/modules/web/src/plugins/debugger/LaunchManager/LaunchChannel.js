@@ -119,7 +119,6 @@ class LaunchChannel extends EventChannel {
      * @memberof LaunchChannel
      */
     onOpen(e) {
-        console.log(e);
         // this.launcher.active = true;
         this.trigger(EVENTS.SESSION_STARTED);
         this.startPing();
