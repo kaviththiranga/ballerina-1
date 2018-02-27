@@ -69,7 +69,6 @@ public class LaunchManager {
     }
 
     private void run(Command command) {
-        Process program = null;
         this.command = command;
         // send a message if ballerina home is not set
         if (null == serverConfig.getBallerinaHome()) {
@@ -81,50 +80,118 @@ public class LaunchManager {
         }
 
         try {
-            String[] cmdArray = command.getCommandArray();
-            String[] envVars = command.getEnvVariables();
-            if (command.getPackageDir() == null) {
-                program = Runtime.getRuntime().exec(cmdArray, envVars);
+            command.analyzeTarget();
+            if (command.shouldBuildAndRun()) {
+                buildAndLaunchProgram();
             } else {
-                program = Runtime.getRuntime().exec(cmdArray, envVars, new File(command.getPackageDir()));
+                launchProgram();
             }
-
-            command.setProgram(program);
-
-
-            pushMessageToClient(LauncherConstants.EXECUTION_STARTED, LauncherConstants.INFO,
-                        String.format(LauncherConstants.RUN_MESSAGE, command.getFileName()));
-
-            if (command.isDebug()) {
-                MessageDTO debugMessage = new MessageDTO();
-                debugMessage.setCode(LauncherConstants.DEBUG);
-                debugMessage.setPort(command.getPort());
-                pushMessageToClient(debugMessage);
-            }
-
-            // start a new thread to stream command output.
-            Runnable output = new Runnable() {
-                public void run() {
-                    LaunchManager.this.streamOutput();
-                }
-            };
-            (new Thread(output)).start();
-            Runnable error = new Runnable() {
-                public void run() {
-                    LaunchManager.this.streamError();
-                }
-            };
-            (new Thread(error)).start();
-
         } catch (IOException e) {
             pushMessageToClient(LauncherConstants.EXIT, LauncherConstants.ERROR, e.getMessage());
         }
     }
 
+    private void buildAndLaunchProgram() throws IOException {
+        Process buildProcess;
+        String[] cmdArray = command.getBuildCommandArray();
+        String[] envVars = command.getEnvVariables();
+        if (command.getPackageDir() == null) {
+            buildProcess = Runtime.getRuntime().exec(cmdArray, envVars);
+        } else {
+            buildProcess = Runtime.getRuntime().exec(cmdArray, envVars, new File(command.getPackageDir()));
+        }
+        command.setProcess(buildProcess);
+
+        pushMessageToClient(LauncherConstants.BUILD_STARTED, LauncherConstants.INFO,
+                String.format(LauncherConstants.BUILD_START_MESSAGE, command.getFileName()));
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                BufferedReader reader = null;
+                try {
+                    reader = new BufferedReader(new InputStreamReader(buildProcess.getInputStream(), Charset
+                            .defaultCharset()));
+                    String line = "";
+                    while ((line = reader.readLine()) != null) {
+                        // TODO
+                    }
+                    pushMessageToClient(LauncherConstants.BUILD_STOPPED, LauncherConstants.INFO,
+                            String.format(LauncherConstants.BUILD_END_MESSAGE, command.getFileName()));
+                    launchProgram();
+                } catch (IOException e) {
+                    logger.error("Error while sending output stream to client.", e);
+                } finally {
+                    if (reader != null) {
+                        IOUtils.closeQuietly(reader);
+                    }
+                }
+            }
+        }).start();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                BufferedReader reader = null;
+                try {
+                    reader = new BufferedReader(new InputStreamReader(
+                            buildProcess.getErrorStream(), Charset.defaultCharset()));
+                    String line = "";
+                    while ((line = reader.readLine()) != null) {
+                        pushMessageToClient(LauncherConstants.BUILD_ERROR, LauncherConstants.ERROR, line);
+                    }
+                } catch (IOException e) {
+                    logger.error("Error while sending error stream to client.", e);
+                } finally {
+                    if (reader != null) {
+                        IOUtils.closeQuietly(reader);
+                    }
+                }
+            }
+        }).start();
+    }
+
+    private void launchProgram() throws IOException {
+        Process launchProcess;
+        String[] cmdArray = command.getRunCommandArray();
+        String[] envVars = command.getEnvVariables();
+        if (command.getPackageDir() == null) {
+            launchProcess = Runtime.getRuntime().exec(cmdArray, envVars);
+        } else {
+            launchProcess = Runtime.getRuntime().exec(cmdArray, envVars, new File(command.getPackageDir()));
+        }
+        command.setProcess(launchProcess);
+
+        pushMessageToClient(LauncherConstants.EXECUTION_STARTED, LauncherConstants.INFO,
+                String.format(LauncherConstants.RUN_MESSAGE, command.shouldBuildAndRun() ?
+                        command.getBuildOutputFile() : command.getFileName()));
+
+        if (command.isDebug()) {
+            MessageDTO debugMessage = new MessageDTO();
+            debugMessage.setCode(LauncherConstants.DEBUG);
+            debugMessage.setPort(command.getPort());
+            pushMessageToClient(debugMessage);
+        }
+
+        // start a new thread to stream command output.
+        Runnable output = new Runnable() {
+            public void run() {
+                LaunchManager.this.streamOutput();
+            }
+        };
+        (new Thread(output)).start();
+        Runnable error = new Runnable() {
+            public void run() {
+                LaunchManager.this.streamError();
+            }
+        };
+        (new Thread(error)).start();
+    }
+
     public void streamOutput() {
         BufferedReader reader = null;
         try {
-            reader = new BufferedReader(new InputStreamReader(this.command.getProgram().getInputStream(), Charset
+            reader = new BufferedReader(new InputStreamReader(this.command.getProcess().getInputStream(), Charset
                     .defaultCharset()));
             String line = "";
             while ((line = reader.readLine()) != null) {
@@ -164,7 +231,7 @@ public class LaunchManager {
         BufferedReader reader = null;
         try {
             reader = new BufferedReader(new InputStreamReader(
-                    this.command.getProgram().getErrorStream(), Charset.defaultCharset()));
+                    this.command.getProcess().getErrorStream(), Charset.defaultCharset()));
             String line = "";
             while ((line = reader.readLine()) != null) {
                 if (this.command.isErrorOutputEnabled()) {
@@ -185,7 +252,7 @@ public class LaunchManager {
      */
     public void stopProcess() {
         int pid = -1;
-        if (this.command != null && this.command.getProgram().isAlive()) {
+        if (this.command != null && this.command.getProcess().isAlive()) {
             //shutdown error streaming to prevent kill message displaying to user.
             this.command.setErrorOutputEnabled(false);
 

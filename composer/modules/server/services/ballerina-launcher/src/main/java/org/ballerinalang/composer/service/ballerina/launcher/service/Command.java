@@ -46,17 +46,28 @@ public class Command {
     private static final String NETTY_TRANSPORTS_YML_TEMPLATE = "/netty-transports.yml.template";
     private static final String LISTENER_PORT = "$LISTENER_PORT";
     private static final int PORT_SEED = 9090;
-    
+    private static final String BALLERINA_HOME = "ballerina.home";
+    private static final String BIN = "bin";
+    private static final String BALLERINA = "ballerina";
+    private static final String BAT = ".bat";
+    private static final String RUN = "run";
+    private static final String BUILD = "build";
+    private static final String BUILD_OUTPUT = "-o";
+    public static final String DEBUG = "--debug";
+
     private String fileName = "";
     private String filePath = "";
+    private String buildOutputFile;
     private boolean debug = false;
     private String[] commandArgs;
     private String configPath;
     private int port;
-    private Process program;
+    private Process process;
     private boolean errorOutputEnabled = true;
     private String packageDir = null;
     private String packagePath = null;
+    private boolean buildAndRun = true;
+    private boolean hasServices = false;
     private static final Logger logger = LoggerFactory.getLogger(Command.class);
 
     public Command(String fileName, String filePath, boolean debug) {
@@ -106,6 +117,14 @@ public class Command {
         this.port = port;
     }
 
+    public boolean shouldBuildAndRun() {
+        return buildAndRun;
+    }
+
+    public void setBuildAndRun(boolean compileAndRun) {
+        this.buildAndRun = compileAndRun;
+    }
+
     public String[] getCommandArgs() {
         return commandArgs;
     }
@@ -128,13 +147,32 @@ public class Command {
     }
 
     /**
-     * Construct the command array to be executed.
+     * Construct the command array to be executed for compiling.
      * @return String[] command array
      */
-    public String[] getCommandArray() {
+    public String[] getBuildCommandArray() {
         List<String> commandList = new ArrayList<>();
-        String scriptLocation = getScriptLocation();
+        // path to ballerina
+        commandList.add(getBallerinaExecutablePath());
+        commandList.add(BUILD);
 
+        if (packagePath == null) {
+            commandList.add(getBalSourceLocation());
+        } else {
+            commandList.add(packagePath);
+        }
+        createTempBuildOutputFile();
+        commandList.add(BUILD_OUTPUT);
+        commandList.add(buildOutputFile);
+        return commandList.toArray(new String[0]);
+    }
+
+    private String getBallerinaExecutablePath() {
+        return System.getProperty(BALLERINA_HOME) + File.separator + BIN + File.separator +
+                BALLERINA + (LaunchUtils.isWindows() ? BAT : "");
+    }
+
+    public void analyzeTarget() {
         BallerinaFile ballerinaFile = ParserUtils.getBallerinaFile(filePath, fileName);
 
         // Assuming there will be only one compilation unit in the list, I'm getting the first element from the list
@@ -151,35 +189,41 @@ public class Command {
                 if (!(pkgNameCompsInString.size() == 1 && ".".equals(pkgNameCompsInString.get(0)))) {
                     packagePath = String.join(File.separator, pkgNameCompsInString);
                     packageDir = ParserUtils.getProgramDirectory(
-                            pkgNameCompsInString.size(), Paths.get(scriptLocation)
+                            pkgNameCompsInString.size(), Paths.get(getBalSourceLocation())
                     ).toString();
                 }
             }
         }
         List<TopLevelNode> serviceDeclarations = topLevelNodes.stream()
                 .filter(topLevelNode -> topLevelNode instanceof BLangService).collect(Collectors.toList());
-        if (!serviceDeclarations.isEmpty()) {
+        this.hasServices = !serviceDeclarations.isEmpty();
+    }
+
+    /**
+     * Construct the command array to be executed.
+     * @return String[] command array
+     */
+    public String[] getRunCommandArray() {
+        List<String> commandList = new ArrayList<>();
+
+        if (this.hasServices) {
             this.generateListenerConfig();
         }
 
         // path to ballerina
-        String ballerinaExecute = System.getProperty("ballerina.home") + File.separator + "bin" + File.separator +
-                "ballerina";
-
-        if (LaunchUtils.isWindows()) {
-            ballerinaExecute += ".bat";
+        commandList.add(getBallerinaExecutablePath());
+        commandList.add(RUN);
+        if (shouldBuildAndRun()) {
+            commandList.add(buildOutputFile);
         }
-        commandList.add(ballerinaExecute);
-        commandList.add("run");
-
-        if (packagePath == null) {
-            commandList.add(scriptLocation);
+        else if (packagePath == null) {
+            commandList.add(getBalSourceLocation());
         } else {
             commandList.add(packagePath);
         }
 
         if (debug) {
-            commandList.add("--debug");
+            commandList.add(DEBUG);
             commandList.add(String.valueOf(this.port));
         }
 
@@ -195,23 +239,25 @@ public class Command {
     }
 
     public String getCommandIdentifier() {
-        if (this.packagePath == null) {
-            return this.getScriptLocation();
+        if (shouldBuildAndRun()) {
+            return this.buildOutputFile;
+        }else if (this.packagePath == null) {
+            return this.getBalSourceLocation();
         } else {
             return this.packagePath;
         }
     }
 
-    public String getScriptLocation() {
+    public String getBalSourceLocation() {
         return this.filePath + File.separator + fileName;
     }
 
-    public void setProgram(Process program) {
-        this.program = program;
+    public void setProcess(Process process) {
+        this.process = process;
     }
 
-    public Process getProgram() {
-        return program;
+    public Process getProcess() {
+        return process;
     }
 
     public boolean isErrorOutputEnabled() {
@@ -220,6 +266,18 @@ public class Command {
 
     public void setErrorOutputEnabled(boolean errorOutputEnabled) {
         this.errorOutputEnabled = errorOutputEnabled;
+    }
+
+    /**
+     * Creates a temporary file for build output.
+     */
+    private void createTempBuildOutputFile() {
+        try {
+            buildOutputFile = File.createTempFile("Sample", ".balx").getAbsolutePath();
+        } catch (IOException e) {
+            logger.error("Unable to create build output file", e);
+            // @todo report error
+        }
     }
 
     /**
@@ -238,7 +296,7 @@ public class Command {
             this.fileName = tmpFile.getName();
             this.filePath = tmpFile.getParent();
         } catch (IOException e) {
-            logger.error("Unable to save command content");
+            logger.error("Unable to save command content", e);
             // @todo report error
         }
     }
@@ -259,8 +317,12 @@ public class Command {
             FileUtils.writeStringToFile(tmpFile, config);
             this.configPath = tmpFile.getAbsolutePath();
         } catch (Exception e) {
-            logger.error("Unable to create listener config");
+            logger.error("Unable to create listener config", e);
             // @todo report error
         }
+    }
+
+    public String getBuildOutputFile() {
+        return buildOutputFile;
     }
 }

@@ -45,10 +45,15 @@ public class LauncherConstants {
     public static final String MSG_INVALID = "Unsupported command";
     
     public static final String OUTPUT = "OUTPUT";
+    public static final String BUILD_STARTED = "BUILD_STARTED";
+    public static final String BUILD_ERROR = "BUILD_ERROR";
+    public static final String BUILD_STOPPED = "BUILD_STOPPED";
     public static final String EXECUTION_STARTED = "EXECUTION_STARTED";
     public static final String EXECUTION_STOPPED = "EXECUTION_STOPPED";
     public static final String DEBUG = "DEBUG_PORT";
     public static final String EXIT = "EXIT";
+    public static final String BUILD_START_MESSAGE = "Building %s";
+    public static final String BUILD_END_MESSAGE = "Building %s completed";
     public static final String RUN_MESSAGE = "Running %s";
     public static final String END_MESSAGE = "Execution Ended.";
     public static final String INVALID_BAL_PATH_MESSAGE = "ERROR: Unable to run program, ballerina runtime cannot be " +
