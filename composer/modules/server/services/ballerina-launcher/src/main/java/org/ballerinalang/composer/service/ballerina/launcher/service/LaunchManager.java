@@ -34,7 +34,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.InetAddress;
 import java.nio.charset.Charset;
 import java.time.Duration;
 import java.time.Instant;
@@ -52,6 +51,8 @@ public class LaunchManager {
     private static final Logger logger = LoggerFactory.getLogger(LaunchManager.class);
 
     private static Map<String, LaunchManager> launchManagersMap = new HashMap<>();
+
+    private static final String BALLERINA_HOME = "ballerina.home";
 
     private static final String LAUNCHER_CONFIG_KEY = "launcher";
 
@@ -80,7 +81,7 @@ public class LaunchManager {
     private void run(Command command) {
         this.command = command;
         // send a message if ballerina home is not set
-        if (null == serverConfig.getBallerinaHome()) {
+        if (null == System.getProperty(BALLERINA_HOME)) {
             pushMessageToClient(LauncherConstants.ERROR, LauncherConstants.ERROR, LauncherConstants
                     .INVALID_BAL_PATH_MESSAGE);
             pushMessageToClient(LauncherConstants.ERROR, LauncherConstants.ERROR, LauncherConstants
@@ -211,7 +212,7 @@ public class LaunchManager {
                             LauncherConstants.DEPLOYING_SERVICES);
                 } else if (line.startsWith(LauncherConstants.SERVER_CONNECTOR_STARTED_AT_HTTP_LOCAL)) {
                     this.updatePort(line);
-                    String serviceURL = "http://" + InetAddress.getLocalHost().getHostAddress() + ":" + this.port;
+                    String serviceURL = "http://" + serverConfig.getHost() + ":" + this.port;
                     pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.INFO,
                             LauncherConstants.STARTED_SERVICES + serviceURL);
                     pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.DATA,
