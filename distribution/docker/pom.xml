@@ -271,6 +271,10 @@
                     </plugins>
                 </pluginManagement>
             </build>
+            <properties>
+                <release.preparationGoals>build-helper:parse-version replacer:replace scm:checkin verify</release.preparationGoals>
+                <release.completionGoals>build-helper:parse-version replacer:replace scm:checkin verify</release.completionGoals>
+            </properties>
         </profile>
     </profiles>
 

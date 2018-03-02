@@ -677,22 +677,18 @@
     <profiles>
         <profile>
             <id>wso2-release</id>
+            <properties>
+                <release.preparationGoals>verify</release.preparationGoals>
+                <release.completionGoals>verify</release.completionGoals>
+            </properties>
             <build>
                 <pluginManagement>
                     <plugins>
                         <plugin>
                             <artifactId>maven-release-plugin</artifactId>
                             <configuration>
-                                <preparationGoals>-Pwso2-release build-helper:parse-version replacer:replace scm:checkin verify</preparationGoals>
-                                <completionGoals>-Pwso2-release build-helper:parse-version replacer:replace scm:checkin verify</completionGoals>
-                            </configuration>
-                        </plugin>
-                        <plugin>
-                            <artifactId>maven-scm-plugin</artifactId>
-                            <configuration>
-                                <message>[maven-scm-plugin] update versions in non-pom files to ${project.version}.</message>
-                                <includes>
-                                </includes>
+                                <preparationGoals>-Pwso2-release ${release.preparationGoals}</preparationGoals>
+                                <completionGoals>-Pwso2-release ${release.completionGoals}</completionGoals>
                             </configuration>
                         </plugin>
                         <plugin>
