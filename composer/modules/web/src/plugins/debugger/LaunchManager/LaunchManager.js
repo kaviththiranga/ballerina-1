@@ -73,19 +73,27 @@ class LaunchManager extends EventChannel {
 
     /**
      * Send message to run give ballerina source
+     * @param {String} filePath - path of the file
+     * @param {String} fileName - name of the file
      * @param {String} source - source
      *
      * @memberof LaunchManager
      */
-    sendRunSourceMessage(source) {
+    sendRunSourceMessage(filePath, fileName, source) {
         this.channel = new LaunchChannel(this.endpoint);
-        this.channel.on(EVENTS.SESSION_STARTED, () => {
+        this.channel.on(EVENTS.SESSION_ERROR, (...args) => {
+            this.trigger(EVENTS.SESSION_ERROR, ...args);
+        });
+        this.channel.on(EVENTS.SESSION_STARTED, (...args) => {
             const message = {
                 command: COMMANDS.RUN_SOURCE,
+                filePath,
+                fileName,
                 source,
                 commandArgs: [],
             };
             this.channel.sendMessage(message);
+            this.trigger(EVENTS.SESSION_STARTED, ...args);
         });
         this.channel.on(EVENTS.MESSAGE_RECEIVED, (message) => {
             this.processMesssage(message);

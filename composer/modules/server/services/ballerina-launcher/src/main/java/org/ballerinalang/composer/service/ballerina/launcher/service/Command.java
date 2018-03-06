@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,6 +58,7 @@ public class Command {
 
     private String fileName = "";
     private String filePath = "";
+    private String tempSourceFile;
     private String buildOutputFile;
     private boolean debug = false;
     private String[] commandArgs;
@@ -174,7 +176,13 @@ public class Command {
     }
 
     public void analyzeTarget() {
-        BallerinaFile ballerinaFile = ParserUtils.getBallerinaFile(filePath, fileName);
+        File targetFile = Paths.get(getBalSourceLocation()).toFile();
+        BallerinaFile ballerinaFile = ParserUtils
+                .getBallerinaFile(targetFile.getParent(), targetFile.getName());
+
+        if (ballerinaFile.getBLangPackage() == null || ballerinaFile.getBLangPackage().compUnits.isEmpty()) {
+            return;
+        }
 
         // Assuming there will be only one compilation unit in the list, I'm getting the first element from the list
         compilationUnit = ballerinaFile.getBLangPackage().compUnits.get(0);
@@ -249,7 +257,9 @@ public class Command {
     }
 
     public String getBalSourceLocation() {
-        return this.filePath + File.separator + fileName;
+        return this.tempSourceFile == null
+                ? this.filePath + File.separator + fileName
+                : this.tempSourceFile;
     }
 
     public void setProcess(Process process) {
@@ -292,9 +302,7 @@ public class Command {
         try {
             tmpFile = File.createTempFile("Sample", ".bal");
             FileUtils.writeStringToFile(tmpFile, source);
-            // Set the tmp file path and name to the command.
-            this.fileName = tmpFile.getName();
-            this.filePath = tmpFile.getParent();
+            tempSourceFile = tmpFile.getAbsolutePath();
         } catch (IOException e) {
             logger.error("Unable to save command content", e);
             // @todo report error
@@ -320,6 +328,10 @@ public class Command {
             logger.error("Unable to create listener config", e);
             // @todo report error
         }
+    }
+
+    public String getTempSourceFile() {
+        return tempSourceFile;
     }
 
     public String getBuildOutputFile() {

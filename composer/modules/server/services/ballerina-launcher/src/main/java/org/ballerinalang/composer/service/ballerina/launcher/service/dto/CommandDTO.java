@@ -34,8 +34,8 @@ public class CommandDTO {
 
     public CommandDTO(String command, String filePath, String fileName, String[] args) {
         this.command = command;
-        this.filePath = filePath;
-        this.fileName = fileName;
+        this.filePath = filePath == null ? "" : filePath;
+        this.fileName = fileName == null ? "" : fileName;
         this.commandArgs = args;
     }
 

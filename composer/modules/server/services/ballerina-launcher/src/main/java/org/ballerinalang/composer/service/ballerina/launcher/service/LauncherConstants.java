@@ -48,12 +48,14 @@ public class LauncherConstants {
     public static final String BUILD_STARTED = "BUILD_STARTED";
     public static final String BUILD_ERROR = "BUILD_ERROR";
     public static final String BUILD_STOPPED = "BUILD_STOPPED";
+    public static final String BUILD_STOPPED_WITH_ERRORS = "BUILD_STOPPED_WITH_ERRORS";
     public static final String EXECUTION_STARTED = "EXECUTION_STARTED";
     public static final String EXECUTION_STOPPED = "EXECUTION_STOPPED";
     public static final String DEBUG = "DEBUG_PORT";
     public static final String EXIT = "EXIT";
-    public static final String BUILD_START_MESSAGE = "building program";
-    public static final String BUILD_END_MESSAGE = "building program completed in ";
+    public static final String BUILD_START_MESSAGE = "Building...";
+    public static final String BUILD_END_WITH_ERRORS_MESSAGE = "Build failed with errors in ";
+    public static final String BUILD_END_MESSAGE = "Build completed in ";
     public static final String RUN_MESSAGE = "running program";
     public static final String END_MESSAGE = "running program completed";
     public static final String DEPLOYING_SERVICES = "deploying services";

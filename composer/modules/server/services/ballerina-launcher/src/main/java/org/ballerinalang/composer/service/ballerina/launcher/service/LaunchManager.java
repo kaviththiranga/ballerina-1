@@ -66,6 +66,8 @@ public class LaunchManager {
 
     private String port = StringUtils.EMPTY;
 
+    private volatile boolean buildPassed = true;
+
     /**
      * Instantiates a new Debug manager.
      */
@@ -96,7 +98,7 @@ public class LaunchManager {
             } else {
                 launchProgram();
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             pushMessageToClient(LauncherConstants.EXIT, LauncherConstants.ERROR, e.getMessage());
         }
     }
@@ -129,9 +131,11 @@ public class LaunchManager {
                     }
                     Instant buildStop = Instant.now();
                     Duration buildTime = Duration.between(buildStart, buildStop);
-                    pushMessageToClient(LauncherConstants.BUILD_STOPPED, LauncherConstants.INFO,
-                            LauncherConstants.BUILD_END_MESSAGE + buildTime.toMillis() + " milliseconds");
-                    launchProgram();
+                    if (buildPassed) {
+                        pushMessageToClient(LauncherConstants.BUILD_STOPPED, LauncherConstants.INFO,
+                                LauncherConstants.BUILD_END_MESSAGE + buildTime.toMillis() + "ms");
+                        launchProgram();
+                    }
                 } catch (IOException e) {
                     logger.error("Error while sending output stream to client.", e);
                 } finally {
@@ -151,7 +155,16 @@ public class LaunchManager {
                             buildProcess.getErrorStream(), Charset.defaultCharset()));
                     String line = "";
                     while ((line = reader.readLine()) != null) {
-                        pushMessageToClient(LauncherConstants.BUILD_ERROR, LauncherConstants.ERROR, line);
+                        if (buildPassed) {
+                            buildPassed = false;
+                            Instant buildStop = Instant.now();
+                            Duration buildTime = Duration.between(buildStart, buildStop);
+                            pushMessageToClient(LauncherConstants.BUILD_STOPPED_WITH_ERRORS,
+                                    LauncherConstants.INFO,
+                                    LauncherConstants.BUILD_END_WITH_ERRORS_MESSAGE + buildTime.toMillis() + "ms");
+
+                        }
+                        pushMessageToClient(LauncherConstants.BUILD_ERROR, LauncherConstants.BUILD_ERROR, line);
                     }
                 } catch (IOException e) {
                     logger.error("Error while sending error stream to client.", e);
@@ -208,12 +221,11 @@ public class LaunchManager {
             String line = "";
             while ((line = reader.readLine()) != null) {
                 if (line.startsWith(LauncherConstants.DEPLOYING_SERVICES_IN_MESSAGE)) {
-                    pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.INFO,
-                            LauncherConstants.DEPLOYING_SERVICES);
+                    continue;
                 } else if (line.startsWith(LauncherConstants.SERVER_CONNECTOR_STARTED_AT_HTTP_LOCAL)) {
                     this.updatePort(line);
                     String serviceURL = "http://" + serverConfig.getHost() + ":" + this.port;
-                    pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.INFO,
+                    pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.DATA,
                             LauncherConstants.STARTED_SERVICES + serviceURL);
                     pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.DATA,
                             LauncherConstants.TRY_IT_MSG + getCURLCmd(serviceURL));
@@ -233,6 +245,9 @@ public class LaunchManager {
     }
 
     private String getCURLCmd(String serviceURL) {
+        if (this.command.getCompilationUnit() == null) {
+            return serviceURL;
+        }
         List<TopLevelNode> topLevelNodes = this.command.getCompilationUnit().getTopLevelNodes();
         Optional<TopLevelNode> firstServiceQuery = topLevelNodes.stream()
                 .filter(topLevelNode -> topLevelNode instanceof BLangService)
@@ -388,6 +403,14 @@ public class LaunchManager {
     }
 
     public void pushMessageToClient(String code, String type, String text) {
+        String sourceFilePath = command.getBalSourceLocation();
+        String displayFileName = sourceFilePath;
+        if (command.getTempSourceFile() != null && sourceFilePath.equals(command.getTempSourceFile())) {
+            displayFileName = command.getFilePath() + File.separator + command.getFileName();
+        }
+        String displayBuiltFileName = displayFileName.replaceAll(".bal", ".balx");
+        text = text.replaceAll(sourceFilePath, displayFileName);
+        text = text.replaceAll(command.getBuildOutputFile(), displayBuiltFileName);
         MessageDTO message = new MessageDTO();
         message.setCode(code);
         message.setType(type);
