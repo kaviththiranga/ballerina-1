@@ -146,6 +146,10 @@ public class Command {
         if (configPath != null) {
             envVarList.add("BALLERINA_TRANSPORT_CONFIG=" + configPath);
         }
+        List<String> currentEnvVars = System.getenv().entrySet().stream()
+                .map(envVar -> envVar.getKey() + "=" + envVar.getValue())
+                .collect(Collectors.toList());
+        envVarList.addAll(currentEnvVars);
         return envVarList.toArray(new String[0]);
     }
 
