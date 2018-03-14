@@ -51,10 +51,12 @@ public class TerminatorUnix implements Terminator {
                 "/bin/sh",
                 "-c",
                 "ps -ef -o pid,args | grep " +
-                        script + " | grep run | grep ballerina | grep -v 'grep' | awk '{print $1}'"
+                        script + " | grep run | grep ballerina | grep -v 'grep " +
+                        script + "' | awk '{print $1}'"
         };
         return cmd;
     }
+
 
     /**
      * Terminate running ballerina program.
