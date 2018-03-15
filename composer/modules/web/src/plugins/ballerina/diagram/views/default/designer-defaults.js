@@ -16,6 +16,7 @@
  * under the License.
  */
 
+export const topOffset = 50;
 
 export const panel = {
     wrapper: {
