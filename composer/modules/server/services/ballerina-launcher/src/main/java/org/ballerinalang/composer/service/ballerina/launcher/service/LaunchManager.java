@@ -227,8 +227,6 @@ public class LaunchManager {
                     String serviceURL = "http://" + serverConfig.getHost() + ":" + this.port;
                     pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.DATA,
                             LauncherConstants.STARTED_SERVICES + serviceURL);
-                    pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.DATA,
-                            LauncherConstants.TRY_IT_MSG + getCURLCmd(serviceURL));
                 } else {
                     pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.DATA, line);
                 }
