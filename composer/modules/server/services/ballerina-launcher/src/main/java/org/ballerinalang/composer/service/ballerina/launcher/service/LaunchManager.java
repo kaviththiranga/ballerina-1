@@ -41,6 +41,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Timer;
+import java.util.TimerTask;
 import javax.websocket.Session;
 
 /**
@@ -51,6 +53,8 @@ public class LaunchManager {
     private static final Logger logger = LoggerFactory.getLogger(LaunchManager.class);
 
     private static Map<String, LaunchManager> launchManagersMap = new HashMap<>();
+
+    public static final int PROGRAM_TIMEOUT = 30000;
 
     private static final String BALLERINA_HOME = "ballerina.home";
 
@@ -110,6 +114,11 @@ public class LaunchManager {
                         : null;
         String[] cmdArray = curl.split("(\\s)+");
         String[] envVars = command.getEnvVariables();
+        if (cmdArray.length > 0 && !cmdArray[0].equals("curl")) {
+            pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.DATA, "only curl cmd is supported");
+            stopProcess();
+            return;
+        }
         Instant curlStart = Instant.now();
         curlProcess = Runtime.getRuntime().exec(cmdArray, envVars);
 
@@ -249,6 +258,18 @@ public class LaunchManager {
             launchProcess = Runtime.getRuntime().exec(cmdArray, envVars, new File(command.getPackageDir()));
         }
         command.setProcess(launchProcess);
+
+        // kill the program process after specified timeout
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if (command != null && command.getProcess().isAlive()) {
+                    stopProcess();
+                    pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.DATA
+                            , "program timed-out in " + PROGRAM_TIMEOUT + "ms");
+                }
+            }
+        }, PROGRAM_TIMEOUT);
 
         pushMessageToClient(LauncherConstants.EXECUTION_STARTED, LauncherConstants.INFO,
                 LauncherConstants.RUN_MESSAGE);
