@@ -42,7 +42,7 @@ public class Server {
     public Server(ServerConfig config) {
         serverConfig = config;
         serviceProviderLoader = ServiceLoader.load(ComposerServiceProvider.class);
-        microservicesRunner = new MicroservicesRunner(serverConfig.getPort());
+        microservicesRunner = new MicroservicesRunner();
         serviceList = new ArrayList<>();
     }
 

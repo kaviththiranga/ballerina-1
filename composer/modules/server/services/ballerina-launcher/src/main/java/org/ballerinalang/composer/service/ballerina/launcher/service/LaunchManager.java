@@ -224,7 +224,7 @@ public class LaunchManager {
                     continue;
                 } else if (line.startsWith(LauncherConstants.SERVER_CONNECTOR_STARTED_AT_HTTP_LOCAL)) {
                     this.updatePort(line);
-                    String serviceURL = "http://" + serverConfig.getHost() + ":" + this.port;
+                    String serviceURL = "http://playground.localhost/";
                     pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.DATA,
                             LauncherConstants.STARTED_SERVICES + serviceURL);
                 } else {

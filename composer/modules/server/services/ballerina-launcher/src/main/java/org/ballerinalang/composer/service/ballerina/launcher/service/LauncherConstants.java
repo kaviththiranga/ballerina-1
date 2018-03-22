@@ -53,27 +53,26 @@ public class LauncherConstants {
     public static final String EXECUTION_STOPPED = "EXECUTION_STOPPED";
     public static final String DEBUG = "DEBUG_PORT";
     public static final String EXIT = "EXIT";
-    public static final String BUILD_START_MESSAGE = "Building...";
-    public static final String BUILD_END_WITH_ERRORS_MESSAGE = "Build failed with errors in ";
-    public static final String BUILD_END_MESSAGE = "Build completed in ";
+    public static final String BUILD_START_MESSAGE = "building...";
+    public static final String BUILD_END_WITH_ERRORS_MESSAGE = "build failed with errors in ";
+    public static final String BUILD_END_MESSAGE = "build completed in ";
     public static final String RUN_MESSAGE = "running program";
     public static final String END_MESSAGE = "running program completed";
     public static final String DEPLOYING_SERVICES = "deploying services";
-    public static final String STARTED_SERVICES = "started services at ";
+    public static final String STARTED_SERVICES = "started service at ";
     public static final String INVALID_BAL_PATH_MESSAGE = "ERROR: Unable to run program, ballerina runtime cannot be " +
                                                           "found.";
     public static final String EXECUTION_TERMINATED = "EXECUTION_TERMINATED";
-    public static final String SET_BAL_PATH_MESSAGE = "Please set BALLERINA_HOME environment variable pointing to " +
+    public static final String SET_BAL_PATH_MESSAGE = "please set BALLERINA_HOME environment variable pointing to " +
                                                       "ballerina runtime.";
     public static final String DEPLOYING_SERVICES_IN_MESSAGE = "ballerina: deploying service(s) in";
     public static final String SERVER_CONNECTOR_STARTED_AT_HTTP_LOCAL = "ballerina: started HTTP/WS server connector";
     public static final String TERMINATE_MESSAGE = "program terminated";
-    public static final String UNSUPPORTED_OPERATING_SYSTEM = "Unsupported operating system";
+    public static final String UNSUPPORTED_OPERATING_SYSTEM = "unsupported operating system";
     public static final String LOCAL_TRY_IT_URL = "http://%s:%s";
 
     //message types
     public static final String INFO = "INFO";
     public static final String ERROR = "ERROR";
     public static final String DATA = "DATA";
-    public static final String TRY_IT_MSG = "Try with: curl -X POST --data \"Hello\" ";
 }
