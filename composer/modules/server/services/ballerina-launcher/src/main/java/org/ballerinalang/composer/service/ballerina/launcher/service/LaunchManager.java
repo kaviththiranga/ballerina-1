@@ -103,6 +103,68 @@ public class LaunchManager {
         }
     }
 
+    private void executeCURL(String host) throws IOException {
+        Process curlProcess;
+        String curl = command.getCurl() != null
+                        ? command.getCurl().replace("playground.localhost", host)
+                        : null;
+        String[] cmdArray = curl.split("(\\s)+");
+        String[] envVars = command.getEnvVariables();
+        Instant curlStart = Instant.now();
+        curlProcess = Runtime.getRuntime().exec(cmdArray, envVars);
+
+        pushMessageToClient(LauncherConstants.CURL_EXEC_STARTED, LauncherConstants.INFO,
+                LauncherConstants.CURL_EXEC_STARTED_MESSAGE);
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                BufferedReader reader = null;
+                try {
+                    reader = new BufferedReader(new InputStreamReader(curlProcess.getInputStream(), Charset
+                            .defaultCharset()));
+                    String line = "";
+                    while ((line = reader.readLine()) != null) {
+                        pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.DATA, line);
+                    }
+                    Instant curlStop = Instant.now();
+                    Duration executionTime = Duration.between(curlStart, curlStop);
+                    pushMessageToClient(LauncherConstants.CURL_EXEC_STOPPED, LauncherConstants.INFO,
+                            LauncherConstants.CURL_EXEC_STOPPED_MESSAGE + executionTime.toMillis() + "ms");
+                    stopProcess();
+                } catch (IOException e) {
+                    logger.error("Error while sending output stream to client.", e);
+                } finally {
+                    if (reader != null) {
+                        IOUtils.closeQuietly(reader);
+                    }
+                }
+            }
+        }).start();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                BufferedReader reader = null;
+                try {
+                    reader = new BufferedReader(new InputStreamReader(
+                            curlProcess.getErrorStream(), Charset.defaultCharset()));
+                    String line = "";
+                    while ((line = reader.readLine()) != null) {
+                        pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.ERROR, line);
+                    }
+                    stopProcess();
+                } catch (IOException e) {
+                    logger.error("Error while sending error stream to client.", e);
+                } finally {
+                    if (reader != null) {
+                        IOUtils.closeQuietly(reader);
+                    }
+                }
+            }
+        }).start();
+    }
+
     private void buildAndLaunchProgram() throws IOException {
         Process buildProcess;
         String[] cmdArray = command.getBuildCommandArray();
@@ -227,6 +289,7 @@ public class LaunchManager {
                     String serviceURL = "http://playground.localhost/";
                     pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.DATA,
                             LauncherConstants.STARTED_SERVICES + serviceURL);
+                    this.executeCURL(serverConfig.getHost() + ':' + this.getPort());
                 } else {
                     pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.DATA, line);
                 }
@@ -362,6 +425,7 @@ public class LaunchManager {
                 Command cmd = new Command(
                         command.getFileName(), command.getFilePath(), command.getCommandArgs(), false);
                 cmd.setSource(command.getSource());
+                cmd.setCurl(command.getCurl());
                 run(cmd);
                 break;
             case LauncherConstants.RUN_PROGRAM:

@@ -79,7 +79,7 @@ class LaunchManager extends EventChannel {
      *
      * @memberof LaunchManager
      */
-    sendRunSourceMessage(filePath, fileName, source) {
+    sendRunSourceMessage(filePath, fileName, source, curl) {
         this.channel = new LaunchChannel(this.endpoint);
         this.channel.on(EVENTS.SESSION_ERROR, (...args) => {
             this.trigger(EVENTS.SESSION_ERROR, ...args);
@@ -91,6 +91,7 @@ class LaunchManager extends EventChannel {
                 fileName,
                 source,
                 commandArgs: [],
+                curl,
             };
             this.channel.sendMessage(message);
             this.trigger(EVENTS.SESSION_STARTED, ...args);

@@ -71,6 +71,7 @@ public class Command {
     private boolean buildAndRun = true;
     private boolean hasServices = false;
     private BLangCompilationUnit compilationUnit;
+    private String curl;
     private static final Logger logger = LoggerFactory.getLogger(Command.class);
 
     public Command(String fileName, String filePath, boolean debug) {
@@ -344,5 +345,13 @@ public class Command {
 
     public BLangCompilationUnit getCompilationUnit() {
         return compilationUnit;
+    }
+
+    public void setCurl(String curl) {
+        this.curl = curl;
+    }
+
+    public String getCurl() {
+        return curl;
     }
 }

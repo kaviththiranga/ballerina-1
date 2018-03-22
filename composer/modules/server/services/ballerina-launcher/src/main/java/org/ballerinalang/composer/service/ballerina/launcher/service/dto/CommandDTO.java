@@ -32,6 +32,8 @@ public class CommandDTO {
 
     private String source;
 
+    private String curl;
+
     public CommandDTO(String command, String filePath, String fileName, String[] args) {
         this.command = command;
         this.filePath = filePath == null ? "" : filePath;
@@ -77,5 +79,13 @@ public class CommandDTO {
 
     public void setSource(String source) {
         this.source = source;
+    }
+
+    public String getCurl() {
+        return curl;
+    }
+
+    public void setCurl(String curl) {
+        this.curl = curl;
     }
 }

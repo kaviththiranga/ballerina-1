@@ -46,6 +46,8 @@ public class LauncherConstants {
     
     public static final String OUTPUT = "OUTPUT";
     public static final String BUILD_STARTED = "BUILD_STARTED";
+    public static final String CURL_EXEC_STARTED = "CURL_EXEC_STARTED";
+    public static final String CURL_EXEC_STOPPED = "CURL_EXEC_STOPPED";
     public static final String BUILD_ERROR = "BUILD_ERROR";
     public static final String BUILD_STOPPED = "BUILD_STOPPED";
     public static final String BUILD_STOPPED_WITH_ERRORS = "BUILD_STOPPED_WITH_ERRORS";
@@ -54,6 +56,8 @@ public class LauncherConstants {
     public static final String DEBUG = "DEBUG_PORT";
     public static final String EXIT = "EXIT";
     public static final String BUILD_START_MESSAGE = "building...";
+    public static final String CURL_EXEC_STARTED_MESSAGE = "executing curl...";
+    public static final String CURL_EXEC_STOPPED_MESSAGE = "executing curl completed in ";
     public static final String BUILD_END_WITH_ERRORS_MESSAGE = "build failed with errors in ";
     public static final String BUILD_END_MESSAGE = "build completed in ";
     public static final String RUN_MESSAGE = "running program";
