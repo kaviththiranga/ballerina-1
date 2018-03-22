@@ -17,6 +17,15 @@
  */
 export const topOffset = 0;
 
+export const panel = {
+    wrapper: {
+        gutter: {
+            v: 0,
+            h: 0,
+        },
+    },
+};
+
 export const iconForTool = {
     height: 300,
     width: 300,
