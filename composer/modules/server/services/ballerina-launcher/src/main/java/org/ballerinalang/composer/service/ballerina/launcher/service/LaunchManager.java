@@ -54,7 +54,7 @@ public class LaunchManager {
 
     private static Map<String, LaunchManager> launchManagersMap = new HashMap<>();
 
-    public static final int PROGRAM_TIMEOUT = 30000;
+    public static final int PROGRAM_TIMEOUT = 10000;
 
     private static final String BALLERINA_HOME = "ballerina.home";
 
