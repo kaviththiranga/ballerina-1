@@ -35,6 +35,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
@@ -180,7 +182,8 @@ public class LaunchManager {
         String[] envVars = command.getEnvVariables();
         Instant buildStart = Instant.now();
         if (command.getPackageDir() == null) {
-            buildProcess = Runtime.getRuntime().exec(cmdArray, envVars);
+            Path workingDir = Paths.get(command.getBalSourceLocation()).getParent();
+            buildProcess = Runtime.getRuntime().exec(cmdArray, envVars, workingDir.toFile());
         } else {
             buildProcess = Runtime.getRuntime().exec(cmdArray, envVars, new File(command.getPackageDir()));
         }
@@ -198,7 +201,7 @@ public class LaunchManager {
                             .defaultCharset()));
                     String line = "";
                     while ((line = reader.readLine()) != null) {
-                        // TODO
+                        pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.DATA, line);
                     }
                     Instant buildStop = Instant.now();
                     Duration buildTime = Duration.between(buildStart, buildStop);
@@ -253,7 +256,8 @@ public class LaunchManager {
         String[] cmdArray = command.getRunCommandArray();
         String[] envVars = command.getEnvVariables();
         if (command.getPackageDir() == null) {
-            launchProcess = Runtime.getRuntime().exec(cmdArray, envVars);
+            Path workingDir = Paths.get(command.getBalSourceLocation()).getParent();
+            launchProcess = Runtime.getRuntime().exec(cmdArray, envVars, workingDir.toFile());
         } else {
             launchProcess = Runtime.getRuntime().exec(cmdArray, envVars, new File(command.getPackageDir()));
         }

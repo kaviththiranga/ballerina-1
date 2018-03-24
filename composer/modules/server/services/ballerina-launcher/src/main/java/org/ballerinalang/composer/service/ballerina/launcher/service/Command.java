@@ -165,13 +165,13 @@ public class Command {
         commandList.add(BUILD);
 
         if (packagePath == null) {
-            commandList.add(getBalSourceLocation());
+            commandList.add(Paths.get(getBalSourceLocation()).toFile().getName());
         } else {
             commandList.add(packagePath);
         }
         createTempBuildOutputFile();
-        commandList.add(BUILD_OUTPUT);
-        commandList.add(buildOutputFile);
+//        commandList.add(BUILD_OUTPUT);
+//        commandList.add(buildOutputFile);
         return commandList.toArray(new String[0]);
     }
 
@@ -228,7 +228,8 @@ public class Command {
         commandList.add(getBallerinaExecutablePath());
         commandList.add(RUN);
         if (shouldBuildAndRun()) {
-            commandList.add(buildOutputFile);
+            commandList.add(Paths.get(getBalSourceLocation()).getFileName().toString()
+                    .replace("bal", "balx"));
         } else if (packagePath == null) {
             commandList.add(getBalSourceLocation());
         } else {
@@ -253,7 +254,7 @@ public class Command {
 
     public String getCommandIdentifier() {
         if (shouldBuildAndRun()) {
-            return this.buildOutputFile;
+            return Paths.get(getBalSourceLocation()).getFileName().toString().replace("bal", "balx");
         } else if (this.packagePath == null) {
             return this.getBalSourceLocation();
         } else {
@@ -287,12 +288,10 @@ public class Command {
      * Creates a temporary file for build output.
      */
     private void createTempBuildOutputFile() {
-        try {
-            buildOutputFile = File.createTempFile("Sample", ".balx").getAbsolutePath();
-        } catch (IOException e) {
-            logger.error("Unable to create build output file", e);
-            // @todo report error
-        }
+        Path sourceFile = Paths.get(getBalSourceLocation());
+        buildOutputFile = Paths.get(sourceFile.getParent().toAbsolutePath().toString(),
+                sourceFile.getFileName().toString().replace("bal", "balx"))
+                .toAbsolutePath().toString();
     }
 
     /**
@@ -305,7 +304,8 @@ public class Command {
         File tmpFile = null;
         // We will create a tmp bal file and set that as the fileName.
         try {
-            tmpFile = File.createTempFile("Sample", ".bal");
+            Path tempDirectory = Files.createTempDirectory("playground-sample-run");
+            tmpFile = File.createTempFile("Sample", ".bal", tempDirectory.toFile());
             FileUtils.writeStringToFile(tmpFile, source);
             tempSourceFile = tmpFile.getAbsolutePath();
         } catch (IOException e) {
