@@ -76,10 +76,12 @@ class LaunchManager extends EventChannel {
      * @param {String} filePath - path of the file
      * @param {String} fileName - name of the file
      * @param {String} source - source
+     * @param {String} curl - curl command
+     * @param {Number} noOfCurlExecutions - no of curl executions
      *
      * @memberof LaunchManager
      */
-    sendRunSourceMessage(filePath, fileName, source, curl) {
+    sendRunSourceMessage(filePath, fileName, source, curl, noOfCurlExecutions) {
         this.channel = new LaunchChannel(this.endpoint);
         this.channel.on(EVENTS.SESSION_ERROR, (...args) => {
             this.trigger(EVENTS.SESSION_ERROR, ...args);
@@ -92,6 +94,7 @@ class LaunchManager extends EventChannel {
                 source,
                 commandArgs: [],
                 curl,
+                noOfCurlExecutions,
             };
             this.channel.sendMessage(message);
             this.trigger(EVENTS.SESSION_STARTED, ...args);

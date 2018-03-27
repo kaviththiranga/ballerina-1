@@ -34,6 +34,8 @@ public class CommandDTO {
 
     private String curl;
 
+    private int noOfCurlExecutions;
+
     public CommandDTO(String command, String filePath, String fileName, String[] args) {
         this.command = command;
         this.filePath = filePath == null ? "" : filePath;
@@ -87,5 +89,13 @@ public class CommandDTO {
 
     public void setCurl(String curl) {
         this.curl = curl;
+    }
+
+    public int getNoOfCurlExecutions() {
+        return noOfCurlExecutions;
+    }
+
+    public void setNoOfCurlExecutions(int noOfCurlExecutions) {
+        this.noOfCurlExecutions = noOfCurlExecutions;
     }
 }

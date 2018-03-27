@@ -72,6 +72,7 @@ public class Command {
     private boolean hasServices = false;
     private BLangCompilationUnit compilationUnit;
     private String curl;
+    private int noOfCurlExecutions;
     private static final Logger logger = LoggerFactory.getLogger(Command.class);
 
     public Command(String fileName, String filePath, boolean debug) {
@@ -353,5 +354,13 @@ public class Command {
 
     public String getCurl() {
         return curl;
+    }
+
+    public int getNoOfCurlExecutions() {
+        return noOfCurlExecutions;
+    }
+
+    public void setNoOfCurlExecutions(int noOfCurlExecutions) {
+        this.noOfCurlExecutions = noOfCurlExecutions;
     }
 }

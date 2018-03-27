@@ -74,6 +74,8 @@ public class LaunchManager {
 
     private volatile boolean buildPassed = true;
 
+    private volatile int noOfCurlExecutionsHappened = 0;
+
     /**
      * Instantiates a new Debug manager.
      */
@@ -111,6 +113,7 @@ public class LaunchManager {
 
     private void executeCURL(String host) throws IOException {
         Process curlProcess;
+        noOfCurlExecutionsHappened = noOfCurlExecutionsHappened + 1;
         String curl = command.getCurl() != null
                         ? command.getCurl().replace("playground.localhost", host)
                         : null;
@@ -123,9 +126,10 @@ public class LaunchManager {
         }
         Instant curlStart = Instant.now();
         curlProcess = Runtime.getRuntime().exec(cmdArray, envVars);
-
-        pushMessageToClient(LauncherConstants.CURL_EXEC_STARTED, LauncherConstants.INFO,
-                LauncherConstants.CURL_EXEC_STARTED_MESSAGE);
+        if (noOfCurlExecutionsHappened == 1) {
+            pushMessageToClient(LauncherConstants.CURL_EXEC_STARTED, LauncherConstants.INFO,
+                    LauncherConstants.CURL_EXEC_STARTED_MESSAGE);
+        }
 
         new Thread(new Runnable() {
             @Override
@@ -136,13 +140,17 @@ public class LaunchManager {
                             .defaultCharset()));
                     String line = "";
                     while ((line = reader.readLine()) != null) {
-                        pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.DATA, line);
+                        pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.DATA,
+                                "CURL-OUTPUT:" + line);
                     }
                     Instant curlStop = Instant.now();
                     Duration executionTime = Duration.between(curlStart, curlStop);
-                    pushMessageToClient(LauncherConstants.CURL_EXEC_STOPPED, LauncherConstants.INFO,
-                            LauncherConstants.CURL_EXEC_STOPPED_MESSAGE + executionTime.toMillis() + "ms");
-                    stopProcess();
+                    if (noOfCurlExecutionsHappened == command.getNoOfCurlExecutions()) {
+                        pushMessageToClient(LauncherConstants.CURL_EXEC_STOPPED, LauncherConstants.INFO,
+                                LauncherConstants.CURL_EXEC_STOPPED_MESSAGE + executionTime.toMillis() + "ms");
+                        stopProcess();
+                    }
+
                 } catch (IOException e) {
                     logger.error("Error while sending output stream to client.", e);
                 } finally {
@@ -164,7 +172,9 @@ public class LaunchManager {
                     while ((line = reader.readLine()) != null) {
                         pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.ERROR, line);
                     }
-                    stopProcess();
+                    if (noOfCurlExecutionsHappened == command.getNoOfCurlExecutions()) {
+                        stopProcess();
+                    }
                 } catch (IOException e) {
                     logger.error("Error while sending error stream to client.", e);
                 } finally {
@@ -314,7 +324,19 @@ public class LaunchManager {
                     String serviceURL = "http://playground.localhost/";
                     pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.DATA,
                             LauncherConstants.STARTED_SERVICES + serviceURL);
-                    this.executeCURL(serverConfig.getHost() + ':' + this.getPort());
+                    (new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            for (int i = 0; i < command.getNoOfCurlExecutions(); i++) {
+                                try {
+                                    executeCURL(serverConfig.getHost() + ':' + getPort());
+                                    Thread.sleep(1000);
+                                } catch (InterruptedException | IOException e) {
+                                    logger.error("Error while executing the curl.");
+                                }
+                            }
+                        }
+                    })).start();
                 } else {
                     pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.DATA, line);
                 }
@@ -451,6 +473,7 @@ public class LaunchManager {
                         command.getFileName(), command.getFilePath(), command.getCommandArgs(), false);
                 cmd.setSource(command.getSource());
                 cmd.setCurl(command.getCurl());
+                cmd.setNoOfCurlExecutions(command.getNoOfCurlExecutions());
                 run(cmd);
                 break;
             case LauncherConstants.RUN_PROGRAM:
