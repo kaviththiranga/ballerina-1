@@ -338,7 +338,8 @@ public class LaunchManager {
                         }
                     })).start();
                 } else {
-                    pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.DATA, line);
+                    pushMessageToClient(LauncherConstants.OUTPUT, LauncherConstants.DATA,
+                            "BVM-OUTPUT:" + line);
                 }
             }
             pushMessageToClient(LauncherConstants.EXECUTION_STOPPED, LauncherConstants.INFO,
