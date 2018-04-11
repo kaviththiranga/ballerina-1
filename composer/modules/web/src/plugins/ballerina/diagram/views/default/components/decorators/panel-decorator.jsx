@@ -161,7 +161,7 @@ class PanelDecorator extends React.Component {
             };
             return React.createElement(rightComponent.component, rightComponent.props, null);
         });
-        return [...staticButtons, ...dynamicButtons];
+        return this.context.fitToWidth ? [] : [...staticButtons, ...dynamicButtons];
     }
 
     getAnnotationComponents(annotationComponentData, bBox, titleHeight) {
@@ -456,6 +456,7 @@ PanelDecorator.defaultProps = {
 };
 
 PanelDecorator.contextTypes = {
+    fitToWidth: PropTypes.bool.isRequired,
     editor: PropTypes.instanceOf(Object).isRequired,
 };
 
