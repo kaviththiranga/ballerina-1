@@ -115,6 +115,7 @@
                             <executable>node</executable>
                             <arguments>
                                 <argument>../scripts/npm-preinstall</argument>
+                                <argument>--unsafe-perm</argument>
                             </arguments>
                         </configuration>
                     </execution>
@@ -129,6 +130,7 @@
                             <executable>${npm.executable}</executable>
                             <arguments>
                                 <argument>install</argument>
+                                <argument>--unsafe-perm</argument>
                             </arguments>
                         </configuration>
                     </execution>
@@ -143,6 +145,7 @@
                             <executable>node</executable>
                             <arguments>
                                 <argument>../scripts/npm-postinstall</argument>
+                                <argument>--unsafe-perm</argument>
                             </arguments>
                         </configuration>
                     </execution>
@@ -158,6 +161,7 @@
                             <arguments>
                                 <argument>run</argument>
                                 <argument>${npm.build.command}</argument>
+                                <argument>--unsafe-perm</argument>
                             </arguments>
                         </configuration>
                     </execution>
