@@ -86,8 +86,9 @@ class EditableText extends React.Component {
         };
 
         const inputElement = (<input {...inputProps} className={inputClass} />);
-
-        ReactDOM.render(inputElement, this.context.getOverlayContainer());
+        if (!this.context.fitToWidth) {
+            ReactDOM.render(inputElement, this.context.getOverlayContainer());
+        }
     }
 
     render() {
@@ -112,6 +113,7 @@ class EditableText extends React.Component {
 }
 
 EditableText.contextTypes = {
+    fitToWidth: PropTypes.bool.isRequired,
     getOverlayContainer: PropTypes.instanceOf(Object).isRequired,
 };
 
