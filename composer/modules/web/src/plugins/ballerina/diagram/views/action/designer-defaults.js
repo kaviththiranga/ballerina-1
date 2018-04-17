@@ -15,3 +15,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+export const panel = {
+    wrapper: {
+        gutter: {
+            v: 0,
+            h: 0,
+        },
+    },
+};
