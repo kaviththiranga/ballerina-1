@@ -253,7 +253,8 @@ class PanelDecorator extends React.Component {
         const iconWidth = 40;
         const collapsed = this.props.model.viewState.collapsed || false;
         const titleHead = 105;
-
+        const { fitToWidth } = this.context;
+        bBox.w = fitToWidth ? Math.max(680, bBox.w) : bBox.w;
         // const titleComponents = this.getTitleComponents(this.props.titleComponentData);
         const titleWidth = new SizingUtils().getTextWidth(this.state.editingTitle);
 
@@ -300,17 +301,6 @@ class PanelDecorator extends React.Component {
 
         return (<g className='panel'>
             <g className='panel-header'>
-                <rect
-                    x={bBox.x}
-                    y={bBox.y}
-                    width={bBox.w}
-                    height={titleHeight}
-                    rx='0'
-                    ry='0'
-                    className='headingRect'
-                    data-original-title=''
-                    title=''
-                />
                 <rect
                     x={bBox.x}
                     y={bBox.y - 1}
@@ -402,6 +392,17 @@ class PanelDecorator extends React.Component {
                     />
                 }
                 {rightHeadingButtons}
+                <rect
+                    x={bBox.x}
+                    y={bBox.y}
+                    width={bBox.w}
+                    height={titleHeight}
+                    rx='0'
+                    ry='0'
+                    className='headingRect'
+                    data-original-title=''
+                    title=''
+                />
             </g>
             <g className='panel-body'>
                 <CSSTransitionGroup
@@ -410,6 +411,7 @@ class PanelDecorator extends React.Component {
                     transitionEnterTimeout={300}
                     transitionLeaveTimeout={300}
                 >
+                    {!collapsed && this.props.children}
                     <rect
                         x={panelBBox.x}
                         y={panelBBox.y}
@@ -418,7 +420,6 @@ class PanelDecorator extends React.Component {
                         style={panelRectStyles}
                         className='panel-body-rect'
                     />
-                    {!collapsed && this.props.children}
                 </CSSTransitionGroup>
             </g>
         </g>);
