@@ -50,11 +50,18 @@ class CanvasDecorator extends React.Component {
             y: 0,
         };
         const { fitToWidth } = this.context;
+
+        const adjustedHeight = this.props.bBox.h > 285 ?
+                (this.props.bBox.h / this.props.bBox.w) * this.props.containerSize.width
+                : 285
+                ;
         const svgSize = {
             w: fitToWidth ? this.props.containerSize.width : this.props.bBox.w,
-            h: this.props.bBox.h,
+            h: fitToWidth ? adjustedHeight : this.props.bBox.h,
         };
-        const viewBox = fitToWidth ? `0 0 ${this.props.bBox.w} ${this.props.bBox.h}` : '';
+        const adjustedViewBoxW = this.props.bBox.w < 680 ? 680 : this.props.bBox.w;
+        const adjustedViewBoxH = this.props.bBox.w < 680 ? (this.props.bBox.h / this.props.bBox.w) * 680 : this.props.bBox.h;
+        const viewBox = fitToWidth ? `0 0 ${adjustedViewBoxW} ${adjustedViewBoxH}` : '';
         return (
             <div className='' style={{ width: svgSize.w }} >
                 <div ref={(x) => { setCanvasOverlay(x); }}>
@@ -68,17 +75,19 @@ class CanvasDecorator extends React.Component {
                     preserveAspectRatio='xMinYMin'
                     style={{ pointerEvents: fitToWidth ? 'none' : 'auto' }}
                 >
-                    <DropZone
-                        x='0'
-                        y='0'
-                        width='100%'
-                        height='100%'
-                        baseComponent='rect'
-                        dropTarget={this.props.dropTarget}
-                    />
-                    {this.props.children}
-                    <ArrowDecorator start={arrowStart} end={arrowEnd} enable />
-                    <BackwardArrowDecorator start={arrowStart} end={arrowEnd} enable />
+                    <g className='root-group'>
+                        <DropZone
+                            x='0'
+                            y='0'
+                            width='100%'
+                            height='100%'
+                            baseComponent='rect'
+                            dropTarget={this.props.dropTarget}
+                        />
+                        {this.props.children}
+                        <ArrowDecorator start={arrowStart} end={arrowEnd} enable />
+                        <BackwardArrowDecorator start={arrowStart} end={arrowEnd} enable />
+                    </g>
                 </svg>
             </div>
         );
