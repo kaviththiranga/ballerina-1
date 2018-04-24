@@ -284,13 +284,16 @@ class PositioningUtil {
         const funcBodyViewState = functionBody.viewState;
         const cmp = viewState.components;
         const workers = node.workers;
+        const endpoints = node.endpointNodes;
 
         // position the function body.
         funcBodyViewState.bBox.x = viewState.bBox.x + this.config.panel.body.padding.left;
         funcBodyViewState.bBox.y = viewState.bBox.y + cmp.heading.h +
             this.config.panel.body.padding.top + this.config.lifeLine.head.height;
 
-        cmp.client.x = viewState.bBox.x + this.config.panel.body.padding.left;
+        cmp.client.x = workers.length > 0 || endpoints.length > 0
+            ? viewState.bBox.x + this.config.panel.body.padding.left
+            : 220;
         cmp.client.y = viewState.bBox.y + cmp.heading.h + this.config.panel.body.padding.top;
 
         // position the default worker.
@@ -333,7 +336,6 @@ class PositioningUtil {
         }
 
         // Position Endpoints
-        const endpoints = node.endpointNodes;
         endpoints.forEach((endpointNode) => {
             endpointNode.viewState.bBox.x = xindex;
             endpointNode.viewState.bBox.y = cmp.defaultWorker.y;
