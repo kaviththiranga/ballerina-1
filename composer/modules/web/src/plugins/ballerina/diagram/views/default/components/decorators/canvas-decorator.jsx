@@ -34,11 +34,6 @@ import BackwardArrowDecorator from './backward-arrow-decorator';
  */
 class CanvasDecorator extends React.Component {
 
-    constructor(...args) {
-        super(...args);
-        this.state = {}
-    }
-
     /**
      * Renders view for a canvas.
      *
@@ -46,14 +41,6 @@ class CanvasDecorator extends React.Component {
      * @memberof CanvasDecorator
      */
     render() {
-        const arrowStart = {
-            x: 0,
-            y: 0,
-        };
-        const arrowEnd = {
-            x: 0,
-            y: 0,
-        };
         const { fitToWidth } = this.context;
         const { containerSize } = this.props;
 
