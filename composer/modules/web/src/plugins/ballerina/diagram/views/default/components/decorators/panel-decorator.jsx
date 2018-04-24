@@ -253,8 +253,6 @@ class PanelDecorator extends React.Component {
         const iconWidth = 40;
         const collapsed = this.props.model.viewState.collapsed || false;
         const titleHead = 105;
-        const { fitToWidth } = this.context;
-        bBox.w = fitToWidth ? Math.max(680, bBox.w) : bBox.w;
         // const titleComponents = this.getTitleComponents(this.props.titleComponentData);
         const titleWidth = new SizingUtils().getTextWidth(this.state.editingTitle);
 
