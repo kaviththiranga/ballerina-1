@@ -334,8 +334,8 @@ class SizingUtil {
         const functionBodyViewState = node.body.viewState;
         const cmp = viewState.components;
         const workers = node.workers;
-        const defaultWorkerHeight = functionBodyViewState.bBox.h + (this.config.lifeLine.head.height * 2)
-            + (this.config.statement.height * 2);
+        const defaultWorkerHeight = Math.max(functionBodyViewState.bBox.h + (this.config.lifeLine.head.height * 2)
+            + (this.config.statement.height * 2), 210);
         let maxWorkerHeight = workers.length > 0 ? this.getWorkerMaxHeight(workers) : -1;
         maxWorkerHeight = Math.max(maxWorkerHeight, defaultWorkerHeight);
 
@@ -428,13 +428,9 @@ class SizingUtil {
                         + this.config.panel.body.padding.right;
 
         // Get the largest among component heading width and component body width.
-        if (cmp.heading.w > cmp.panelBody.w) {
-            viewState.bBox.w = cmp.heading.w;
-            cmp.panelBody.w = cmp.heading.w;
-        } else {
-            viewState.bBox.w = cmp.panelBody.w;
-            cmp.heading.w = cmp.panelBody.w;
-        }
+        const minWidth = Math.max(cmp.panelBody.w, cmp.heading.w, 680);
+        viewState.bBox.w = minWidth;
+        cmp.panelBody.w = minWidth;
     }
 
     /**
