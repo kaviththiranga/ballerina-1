@@ -18,8 +18,8 @@
 export const panel = {
     wrapper: {
         gutter: {
-            v: 0,
-            h: 5,
+            v: 5,
+            h: 0,
         },
     },
 };
