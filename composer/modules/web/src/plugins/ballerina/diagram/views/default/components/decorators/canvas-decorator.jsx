@@ -65,7 +65,7 @@ class CanvasDecorator extends React.Component {
                         : this.props.bBox.w;
         const adjustedViewBoxH = this.props.bBox.w < 680 ? (this.props.bBox.h / this.props.bBox.w) * 680
                         : this.props.bBox.h;
-        const viewBox = fitToWidth ? `-6 0 ${adjustedViewBoxW} ${adjustedViewBoxH}` : '';
+        const viewBox = fitToWidth ? `0 0 ${adjustedViewBoxW} ${adjustedViewBoxH}` : '';
         return (
             <div className='' style={{ width: svgSize.w, height: svgSize.h }} >
                 <div ref={(x) => { setCanvasOverlay(x); }}>

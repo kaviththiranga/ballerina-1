@@ -218,9 +218,9 @@ class PositioningUtil {
                 width = child.viewState.bBox.w;
             }
             // for each top level node set x and y.
-            child.viewState.bBox.x = this.config.panel.wrapper.gutter.v;
-            child.viewState.bBox.y = height + this.config.panel.wrapper.gutter.h;
-            height = this.config.panel.wrapper.gutter.h + child.viewState.bBox.h + height;
+            child.viewState.bBox.x = this.config.panel.wrapper.gutter.h;
+            child.viewState.bBox.y = height + this.config.panel.wrapper.gutter.v;
+            height = this.config.panel.wrapper.gutter.v + child.viewState.bBox.h + height;
         });
         // add the padding for the width
         width += this.config.panel.wrapper.gutter.h * 2;
