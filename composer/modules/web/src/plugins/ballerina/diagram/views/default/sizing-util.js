@@ -431,6 +431,7 @@ class SizingUtil {
         const minWidth = Math.max(cmp.panelBody.w, cmp.heading.w, 680);
         viewState.bBox.w = minWidth;
         cmp.panelBody.w = minWidth;
+        cmp.heading.w = minWidth;
     }
 
     /**
