@@ -89,8 +89,6 @@ class CanvasDecorator extends React.Component {
                             dropTarget={this.props.dropTarget}
                         />
                         {this.props.children}
-                        <ArrowDecorator start={arrowStart} end={arrowEnd} enable />
-                        <BackwardArrowDecorator start={arrowStart} end={arrowEnd} enable />
                     </g>
                 </svg>
             </div>
