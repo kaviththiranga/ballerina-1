@@ -34,6 +34,11 @@ import BackwardArrowDecorator from './backward-arrow-decorator';
  */
 class CanvasDecorator extends React.Component {
 
+    constructor(...args) {
+        super(...args);
+        this.state = {}
+    }
+
     /**
      * Renders view for a canvas.
      *
@@ -50,20 +55,19 @@ class CanvasDecorator extends React.Component {
             y: 0,
         };
         const { fitToWidth } = this.context;
+        const { containerSize } = this.props;
 
-        const adjustedHeight = this.props.bBox.h > 285 ?
-                (this.props.bBox.h / this.props.bBox.w) * this.props.containerSize.width
-                : 285
-                ;
         const svgSize = {
-            w: fitToWidth ? this.props.containerSize.width : this.props.bBox.w,
-            h: fitToWidth ? adjustedHeight : this.props.bBox.h,
+            w: fitToWidth ? containerSize.width : this.props.bBox.w,
+            h: fitToWidth ? (this.props.bBox.h / this.props.bBox.w) * containerSize.width : this.props.bBox.h,
         };
-        const adjustedViewBoxW = this.props.bBox.w < 680 ? 680 : this.props.bBox.w;
-        const adjustedViewBoxH = this.props.bBox.w < 680 ? (this.props.bBox.h / this.props.bBox.w) * 680 : this.props.bBox.h;
+        const adjustedViewBoxW = this.props.bBox.w < 680 ? 680
+                        : this.props.bBox.w;
+        const adjustedViewBoxH = this.props.bBox.w < 680 ? (this.props.bBox.h / this.props.bBox.w) * 680
+                        : this.props.bBox.h;
         const viewBox = fitToWidth ? `0 0 ${adjustedViewBoxW} ${adjustedViewBoxH}` : '';
         return (
-            <div className='' style={{ width: svgSize.w }} >
+            <div className='' style={{ width: svgSize.w, height: svgSize.h }} >
                 <div ref={(x) => { setCanvasOverlay(x); }}>
                     {/* This space is used to render html elements over svg */ }
                 </div>
