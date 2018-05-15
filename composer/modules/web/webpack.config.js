@@ -22,15 +22,13 @@ const path = require('path');
 const fs = require('fs');
 const webpack = require('webpack');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
-const UnusedFilesWebpackPlugin = require('unused-files-webpack-plugin').UnusedFilesWebpackPlugin;
-const CircularDependencyPlugin = require('circular-dependency-plugin');
-const ProgressBarPlugin = require('progress-bar-webpack-plugin');
-const WebfontPlugin = require('webpack-webfont').default;
+const WebfontPlugin = require('webfont-webpack-plugin').default;
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const WriteFilePlugin = require('write-file-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
+const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 
 const isProductionBuild = process.env.NODE_ENV === 'production';
 
@@ -47,12 +45,7 @@ const config = [{
     entry: {
         tree: './src/plugins/ballerina/model/tree-builder.js',
         bundle: './src/index.js',
-        testable: './src/plugins/ballerina/tests/testable.js',
-        "editor.worker": 'monaco-editor/esm/vs/editor/editor.worker.js',
-        "json.worker": 'monaco-editor/esm/vs/language/json/json.worker',
-        "css.worker": 'monaco-editor/esm/vs/language/css/css.worker',
-        "html.worker": 'monaco-editor/esm/vs/language/html/html.worker',
-        "ts.worker": 'monaco-editor/esm/vs/language/typescript/ts.worker',
+        testable: './src/plugins/ballerina/tests/testable.js'
     },
     output: {
         filename: '[name]-[hash].js',
@@ -132,31 +125,13 @@ const config = [{
         },
         ],
     },
+    optimization: {
+    },
     plugins: [
-        new ProgressBarPlugin(),
         new CleanWebpackPlugin(['dist'], {watch: true, exclude:['themes']}),
-        new webpack.optimize.CommonsChunkPlugin({
-            name: 'tree',
-            chunks: ['bundle', 'tree', 'testable'],
-            minChunks: Infinity,
-        }),
-        new webpack.optimize.CommonsChunkPlugin({
-            name: 'vendor',
-            chunks: ['bundle', 'tree', 'testable'],
-            minChunks(module) {
-                const context = module.context;
-                return context && context.indexOf('node_modules') >= 0;
-            },
-        }),
+        new MonacoWebpackPlugin(),
         extractLessBundle,
         extractCSSBundle,
-        // new UnusedFilesWebpackPlugin({
-        //    pattern: 'js/**/*.*',
-        //    globOptions: {
-        //        ignore: 'js/tests/**/*.*',
-        //    },
-        // }),
-        // https://github.com/fronteed/icheck/issues/322
         new webpack.ProvidePlugin({
             $: 'jquery',
             jQuery: 'jquery',
@@ -200,14 +175,7 @@ const config = [{
         new HtmlWebpackPlugin({
             template: 'src/index.ejs',
             inject: false,
-        }),
-        new webpack.ExtendedAPIPlugin()
-        /*
-        new CircularDependencyPlugin({
-            exclude: /a\.css|node_modules/,
-            failOnError: true,
-        }),
-        */
+        })
     ],
     devServer: {
         contentBase: path.join(__dirname, "dist"),
@@ -278,27 +246,26 @@ const config = [{
 }];
 exportConfig = config;
 if (process.env.NODE_ENV === 'production') {
+    config[0].mode = 'production';
     config[0].plugins.push(new webpack.DefinePlugin({
         PRODUCTION: JSON.stringify(true),
-
-        // React does some optimizations to it if NODE_ENV is set to 'production'
-        'process.env': {
-            NODE_ENV: JSON.stringify('production'),
-        },
     }));
 
     // Add UglifyJsPlugin only when we build for production.
     // uglyfying slows down webpack build so we avoid in when in development
-   config[0].plugins.push(new UglifyJsPlugin({
-       sourceMap: !isProductionBuild,
-       parallel: true,
-       uglifyOptions: {
-           mangle: {
-               keep_fnames: true,
-           },
-       }
-   }));
+   config[0].optimization.minimizer = [
+        new UglifyJsPlugin({
+            sourceMap: !isProductionBuild,
+            parallel: true,
+            uglifyOptions: {
+                mangle: {
+                    keep_fnames: true,
+                },
+            }
+        })
+    ];
 } else {
+    config[0].mode = 'development';
     config[0].plugins.push(new webpack.DefinePlugin({
         PRODUCTION: JSON.stringify(false),
     }));
