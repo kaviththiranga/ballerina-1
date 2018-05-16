@@ -41,10 +41,11 @@ let exportConfig = {};
 const codepoints = {}
 
 const config = [{
+    mode: isProductionBuild ? 'production' : 'development',
     target: 'web',
     entry: {
         tree: './src/plugins/ballerina/model/tree-builder.js',
-        bundle: './src/index.js',
+        app: './src/index.js',
         testable: './src/plugins/ballerina/tests/testable.js'
     },
     output: {
@@ -129,14 +130,6 @@ const config = [{
     },
     plugins: [
         new CleanWebpackPlugin(['dist'], {watch: true, exclude:['themes']}),
-        new MonacoWebpackPlugin(),
-        extractLessBundle,
-        extractCSSBundle,
-        new webpack.ProvidePlugin({
-            $: 'jquery',
-            jQuery: 'jquery',
-        }),
-        new webpack.WatchIgnorePlugin([path.resolve(__dirname, './font/dist/')]),
         new WebfontPlugin({
             files: path.resolve(__dirname, './font/font-ballerina/icons/**/*.svg'),
             cssTemplateFontPath: '../fonts/',
@@ -154,7 +147,8 @@ const config = [{
                 outputFilename: 'font-ballerina.css',
             },
             hash: new Date().getTime(),
-        }), {
+        }), 
+        {
             apply: function(compiler) {
                 compiler.plugin('compile', function(compilation, callback) {
                     fs.writeFile(
@@ -166,6 +160,14 @@ const config = [{
                 });
             }
         },
+        new MonacoWebpackPlugin(),
+        extractLessBundle,
+        extractCSSBundle,
+        new webpack.ProvidePlugin({
+            $: 'jquery',
+            jQuery: 'jquery',
+        }),
+        new webpack.WatchIgnorePlugin([path.resolve(__dirname, './font/dist/')]),
         new WriteFilePlugin(),
         new CopyWebpackPlugin([
             {
@@ -207,8 +209,25 @@ const config = [{
             '../../theme.config$': path.join(__dirname, 'src/ballerina-theme/theme.config')
         },
     },
-
+    optimization: {
+        minimizer: [],
+        // splitChunks: {
+        //     chunks: 'all',
+        //     cacheGroups: {
+        //         vendors: {
+        //             test: /[\\/]node_modules[\\/]/,
+        //             priority: -10
+        //         },
+        //         default: {
+        //             minChunks: 2,
+        //             priority: -20,
+        //             reuseExistingChunk: true
+        //         }
+        //     }
+        // }
+    }
 }, {
+    mode: isProductionBuild ? 'production' : 'development',
     entry: {
         default: './scss/themes/default.scss',
         light: './scss/themes/light.scss',
@@ -244,6 +263,7 @@ const config = [{
     ],
     devtool: 'source-map',
 }];
+
 exportConfig = config;
 if (process.env.NODE_ENV === 'production') {
     config[0].mode = 'production';
@@ -253,17 +273,17 @@ if (process.env.NODE_ENV === 'production') {
 
     // Add UglifyJsPlugin only when we build for production.
     // uglyfying slows down webpack build so we avoid in when in development
-   config[0].optimization.minimizer = [
-        new UglifyJsPlugin({
-            sourceMap: !isProductionBuild,
-            parallel: true,
-            uglifyOptions: {
-                mangle: {
-                    keep_fnames: true,
-                },
-            }
-        })
-    ];
+//    config[0].optimization.minimizer = [
+//         new UglifyJsPlugin({
+//             sourceMap: !isProductionBuild,
+//             parallel: true,
+//             uglifyOptions: {
+//                 mangle: {
+//                     keep_fnames: true,
+//                 },
+//             }
+//         })
+//     ];
 } else {
     config[0].mode = 'development';
     config[0].plugins.push(new webpack.DefinePlugin({
@@ -301,4 +321,4 @@ if (process.env.NODE_ENV === 'test') {
 
 /* eslint-enable */
 
-module.exports = exportConfig;
+module.exports = exportConfig[0];
