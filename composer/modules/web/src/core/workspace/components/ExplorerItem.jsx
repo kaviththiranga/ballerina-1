@@ -217,7 +217,7 @@ class ExplorerItem extends React.Component {
                             this.fileTree = ref;
                         }
                         }
-                        enableContextMenu
+                        readOnly={false}
                         onLoadData={(data) => {
                             this.state.node.children = data;
                         }}

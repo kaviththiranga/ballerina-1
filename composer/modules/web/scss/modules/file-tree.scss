@@ -17,6 +17,17 @@
                 }
             }
         }
+        &.ready-to-drop {
+            .tree-node-highlight-row, .tree-node-highlight-all-nodes {
+                background: #444;
+            }
+        }
+        .tree-node-highlight-all-nodes {
+            left: 0;
+            width: 100%;
+            position: absolute;
+            z-index: -2;
+        }
         .tree-node-header {
             white-space: nowrap;
             overflow-x: hidden;

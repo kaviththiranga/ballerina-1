@@ -22,6 +22,7 @@ import _ from 'lodash';
 import PropTypes from 'prop-types';
 import { getFSRoots, listFiles } from 'api-client/api-client';
 import TreeNode from './TreeNode';
+import DragLayer from './drag-drop/drag-layer';
 
 // A symbol to represent file system root
 const FS_ROOT = '#';
@@ -41,6 +42,8 @@ class FileTree extends React.Component {
             activeNode: undefined,
         };
         this.onToggle = this.onToggle.bind(this);
+        this.onSelect = this.onSelect.bind(this);
+        this.expandNode = this.expandNode.bind(this);
     }
 
     /**
@@ -57,6 +60,38 @@ class FileTree extends React.Component {
         if (this.props.activeKey !== newProps.activeKey) {
             this.loadGivenPath(newProps.activeKey);
         }
+    }
+
+    /**
+     * On Node Select
+     * @param {Object} node node object
+     */
+    onSelect(node) {
+        const { activeNode } = this.state;
+        if (activeNode) {
+            activeNode.active = false;
+        }
+        node.active = true;
+        this.props.onSelect(node);
+        this.setState({
+            activeNode: node,
+        });
+    }
+
+    /**
+     * expand node
+     * @param {Object} node node object
+     */
+    expandNode(node) {
+        if (node.children) {
+            node.collapsed = true;
+            if (_.isEmpty(node.children)) {
+                this.loadNodeChildren(node);
+            }
+        } else {
+            node.collapsed = false;
+        }
+        this.forceUpdate();
     }
 
     /**
@@ -186,6 +221,7 @@ class FileTree extends React.Component {
      * @inheritdoc
      */
     render() {
+        const { readOnly } = this.props;
         const files = _.filter(this.state.data, ['type', 'file']);
         const folders = _.filter(this.state.data, ['type', 'folder']);
         const renderNode = (node, parentNode) => {
@@ -202,9 +238,11 @@ class FileTree extends React.Component {
                 <TreeNode
                     node={node}
                     key={node.id}
+                    expandNode={this.expandNode}
                     onClick={() => this.onToggle(node, !node.collapsed)}
+                    onSelect={this.onSelect}
                     onDoubleClick={this.props.onOpen}
-                    enableContextMenu={this.props.enableContextMenu}
+                    readOnly={this.props.readOnly}
                     onNodeUpdate={(targetNode) => {
                         this.forceUpdate();
                     }}
@@ -238,6 +276,7 @@ class FileTree extends React.Component {
         };
         return (
             <div className='file-tree'>
+                {!readOnly && <DragLayer />}
                 {folders.map((childNode) => {
                     return renderNode(childNode, undefined);
                 })}
@@ -250,9 +289,9 @@ class FileTree extends React.Component {
 }
 
 FileTree.propTypes = {
+    readOnly: PropTypes.bool,
     activeKey: PropTypes.string,
     panelResizeInProgress: PropTypes.bool,
-    enableContextMenu: PropTypes.bool,
     onLoadData: PropTypes.func,
     onOpen: PropTypes.func,
     onSelect: PropTypes.func,
@@ -261,9 +300,9 @@ FileTree.propTypes = {
 };
 
 FileTree.defaultProps = {
+    readOnly: true,
     activeKey: undefined,
     panelResizeInProgress: false,
-    enableContextMenu: false,
     onLoadData: () => {},
     onOpen: () => {},
     onSelect: () => {},

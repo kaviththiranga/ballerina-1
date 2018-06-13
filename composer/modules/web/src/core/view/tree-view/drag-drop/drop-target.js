@@ -1,0 +1,60 @@
+/**
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+import { DropTarget } from 'react-dnd';
+import { ITEM_TYPES } from './constants';
+
+/**
+ * Enable drop on given compenent
+ *
+ * @param {Componet} TreeNode React Component for droppable area
+ *
+ */
+export function withDropEnabled(TreeNode) {
+    // drop target spec
+    const dropSpec = {
+        drop: (props, monitor, component) => {
+            const { node } = props;
+            return {
+                node,
+            };
+        },
+        hover: (props, monitor, component) => {
+
+        },
+        canDrop: (props, monitor, component) => {
+            const { node } = props;
+            const draggingNode = monitor.getItem().node;
+            return node.id !== draggingNode.id
+                && node.type === 'folder';
+        },
+    };
+
+    // Specifies which props to inject into component
+    function collect(connect, monitor) {
+        return {
+            dropTarget: {
+                connectDropTarget: connect.dropTarget(),
+                isOver: monitor.isOver(),
+                isOverCurrent: monitor.isOver({ shallow: true }),
+                canDrop: monitor.canDrop(),
+                isDragging: monitor.getItem() !== null,
+            },
+        };
+    }
+    return DropTarget(ITEM_TYPES.FILE_TREE_NODE, dropSpec, collect)(TreeNode);
+}

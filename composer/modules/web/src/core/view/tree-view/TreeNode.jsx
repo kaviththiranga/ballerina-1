@@ -23,10 +23,13 @@ import _ from 'lodash';
 import PropTypes from 'prop-types';
 import { getPathSeperator } from 'api-client/api-client';
 import classnames from 'classnames';
+import { getEmptyImage } from 'react-dnd-html5-backend';
 import ContextMenuTrigger from './../context-menu/ContextMenuTrigger';
 import { getContextMenuItems } from './menu';
 import { exists, create, move } from './../../workspace/fs-util';
 import { COMMANDS as WORKSPACE_CMDS } from './../../workspace/constants';
+import { withDragEnabled } from './drag-drop/drag-source';
+import { withDropEnabled } from './drag-drop/drop-target';
 
 export const EDIT_TYPES = {
     NEW: 'new',
@@ -41,6 +44,7 @@ export const NODE_TYPES = {
 // via editor contributions
 const EXT = '.bal';
 
+const ROW_HEIGHT = 26;
 /**
  * Class to represent a tree node
  */
@@ -63,6 +67,7 @@ class TreeNode extends React.Component {
         this.nodeRef = undefined;
         this.onEditName = this.onEditName.bind(this);
         this.onEditComplete = this.onEditComplete.bind(this);
+        this.treeNodeDiv = undefined;
     }
 
     /**
@@ -77,6 +82,33 @@ class TreeNode extends React.Component {
         }
         if (this.props.node.active) {
             this.scrollToNode();
+        }
+        // Use empty image as a drag preview so browsers don't draw it
+        // and we can draw whatever we want on the custom drag layer instead.
+        this.props.dragSource.connectDragPreview(getEmptyImage(), {
+            // IE fallback: specify that we'd rather screenshot the node
+            // when it already knows it's being dragged so we can hide it with CSS.
+            captureDraggingState: true,
+        });
+    }
+
+    /**
+     * @inheritdoc
+     */
+    componentWillReceiveProps(newProps) {
+        const {
+            expandNode,
+            node,
+            node: {
+                collapsed,
+            },
+            dropTarget: {
+                isOverCurrent,
+                canDrop,
+            },
+        } = this.props;
+        if (isOverCurrent && canDrop && collapsed) {
+            expandNode(node);
         }
     }
 
@@ -258,11 +290,24 @@ class TreeNode extends React.Component {
             },
             parentNode,
             onClick,
+            onSelect,
             onDoubleClick,
             children,
             onNodeUpdate,
             onNodeRefresh,
             onNodeDelete,
+            readOnly,
+            dropTarget: {
+                connectDropTarget,
+                isOver,
+                isOverCurrent,
+                canDrop,
+                isDragging,
+            },
+            dragSource: {
+                connectDragSource,
+                connectDragPreview,
+            },
         } = this.props;
         const treeNodeHeader = (
             <div
@@ -270,6 +315,11 @@ class TreeNode extends React.Component {
                 data-toggle="tooltip"
                 title={id}
                 className={classnames('tree-node-header', { active })}
+                onMouseDown={() => {
+                    if (!enableEdit) {
+                        onSelect(node);
+                    }
+                }}
                 onClick={() => {
                     if (!enableEdit) {
                         onClick(node);
@@ -364,35 +414,52 @@ class TreeNode extends React.Component {
                 }
             </div>
         );
+        const treeNodeHeaderWrapped = readOnly ? treeNodeHeader : connectDropTarget(connectDragSource(treeNodeHeader));
+        const innerComponents = (
+            <div>
+                <div
+                    className='tree-node-highlight-all-nodes'
+                    style={{
+                        height: collapsed && children ? ROW_HEIGHT * (children.length + 1) : ROW_HEIGHT,
+                    }}
+                />
+                {!this.props.readOnly && !enableEdit &&
+                    <ContextMenuTrigger
+                        id={node.id}
+                        menu={getContextMenuItems(node, parentNode,
+                            this.context.command, onNodeUpdate, onNodeRefresh, this.context)}
+                        onShow={() => {
+                            this.setState({
+                                disableToolTip: true,
+                            });
+                        }}
+                        onHide={() => {
+                            this.setState({
+                                disableToolTip: false,
+                            });
+                        }}
+                    >
+                        {treeNodeHeaderWrapped}
+                    </ContextMenuTrigger>
+                }
+                {(this.props.readOnly || enableEdit) && treeNodeHeaderWrapped}
+                <div className='tree-node-children'>
+                    {collapsed ? null : children}
+                </div>
+            </div>
+        );
         return (
             <div
                 className={classnames('tree-node', 'unseletable-content', {
-                    collapsed: node.loading || collapsed, empty: !node.children }
-                )}
+                    collapsed: node.loading || collapsed,
+                    empty: !node.children,
+                    'ready-to-drop': isOverCurrent && canDrop,
+                })}
+                ref={(ref) => {
+                    this.treeNodeDiv = ref;
+                }}
             >
-                {this.props.enableContextMenu && !enableEdit &&
-                <ContextMenuTrigger
-                    id={node.id}
-                    menu={getContextMenuItems(node, parentNode,
-                        this.context.command, onNodeUpdate, onNodeRefresh, this.context)}
-                    onShow={() => {
-                        this.setState({
-                            disableToolTip: true,
-                        });
-                    }}
-                    onHide={() => {
-                        this.setState({
-                            disableToolTip: false,
-                        });
-                    }}
-                >
-                    {treeNodeHeader}
-                </ContextMenuTrigger>
-                }
-                {(!this.props.enableContextMenu || enableEdit) && treeNodeHeader}
-                <div className="tree-node-children">
-                    {collapsed ? null : children}
-                </div>
+                {innerComponents}
             </div>
         );
     }
@@ -414,19 +481,35 @@ TreeNode.propTypes = {
     onNodeUpdate: PropTypes.func,
     onNodeDelete: PropTypes.func,
     onNodeRefresh: PropTypes.func,
-    enableContextMenu: PropTypes.bool,
+    readOnly: PropTypes.bool,
     children: PropTypes.node,
+    expandNode: PropTypes.func,
     onClick: PropTypes.func,
+    onSelect: PropTypes.func,
     onDoubleClick: PropTypes.func,
     panelResizeInProgress: PropTypes.bool,
+    dropTarget: PropTypes.shape({
+        connectDropTarget: PropTypes.func,
+        isOver: PropTypes.bool,
+        isOverCurrent: PropTypes.bool,
+        canDrop: PropTypes.bool,
+        isDragging: PropTypes.bool,
+    }).isRequired,
+    dragSource: PropTypes.shape({
+        connectDragSource: PropTypes.func,
+        connectDragPreview: PropTypes.func,
+        isDragging: PropTypes.bool,
+    }).isRequired,
 };
 
 TreeNode.defaultProps = {
     panelResizeInProgress: false,
-    enableContextMenu: false,
+    readOnly: true,
     onNodeDelete: () => {},
     onNodeUpdate: () => {},
     onNodeRefresh: () => {},
+    expandNode: () => {},
+    onSelect: () => {},
     onClick: () => {},
     isDOMElementVisible: () => false,
     onDoubleClick: () => {},
@@ -462,4 +545,4 @@ TreeNode.contextTypes = {
     }).isRequired,
 };
 
-export default TreeNode;
+export default withDropEnabled(withDragEnabled(TreeNode));

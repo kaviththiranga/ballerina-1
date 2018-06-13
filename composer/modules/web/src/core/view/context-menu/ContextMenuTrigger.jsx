@@ -37,7 +37,7 @@ class ContextMenuTrigger extends React.Component {
             <div>
                 <ReactContextMenuTrigger
                     id={this.props.id}
-                    holdToDisplay={1000}
+                    holdToDisplay={-1}
                     collect={() => {}}
                 >
                     {this.props.children}
