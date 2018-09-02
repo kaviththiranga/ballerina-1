@@ -157,6 +157,10 @@
                     "dark": "./icons/design-view-white.svg",
                     "light": "./icons/design-view.svg"
                 }
+            },
+            {
+                "command": "ballerina.showExamples",
+                "title": "Ballerina: Show Examples"
             }
         ],
         "menus": {
