@@ -10,92 +10,83 @@ export function render (context: ExtensionContext, langClient: ExtendedLangClien
 function renderDiagram(context: ExtensionContext, docUri: Uri): string {
 
     const body = `
-        <div id="warning">
+    <svg width="600" height="1000" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 800 1000">
+    <rect width="600" height="1000" rx="10"></rect>
+    <rect  x="400" y="180" width="50" height="20" fill="white" />
+    <foreignObject x="400" y="200" width="50px" height="20px">
+        <div class="dropdown">
+          <button class="dropbtn">+</button>
+          <div class="dropdown-content">
+            <a href="#">Link 1</a>
+            <a href="#">Link 2</a>
+            <a href="#">Link 3</a>
+          </div>
         </div>
-        <div class="ballerina-editor design-view-container" id="diagram">
-        </div>
+   </foreignObject>
+</svg>
     `;
 
     const styles = `
         body {
             background: #f1f1f1;
         }
-        .overlay {
-            display: none;
-        }
-        .drop-zone.rect {
-            fill-opacity: 0;
-        }
-        #diagram {
-            height : 100%;
-        }
-        #errors {
-            display: table;
-            width: 100%;
-            height: 100%;
-        }
-        #errors span { 
-            display: table-cell;
-            vertical-align: middle;
-            text-align: center;
-        }
-        #warning {
-            position: absolute;
-            top: 15px;
-            position: absolute;
-            overflow: hidden;
-            height: 25px;
-            vertical-align: bottom;
-            text-align: center;
-            color: rgb(255, 90, 30);
-            width: 100%;
-        }
-        #warning p {
-            line-height: 25px;
-        }
+        /* Dropdown Button */
+
+.dropbtn {
+  background-color: #4CAF50;
+  color: white;
+  font-size: 16px;
+  border: none;
+}
+
+/* The container <div> - needed to position the dropdown content */
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+/* Dropdown Content (Hidden by Default) */
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f1f1f1;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+
+/* Links inside the dropdown */
+
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+/* Change color of dropdown links on hover */
+
+.dropdown-content a:hover {
+  background-color: #ddd;
+}
+
+/* Show the dropdown menu on hover */
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+/* Change the background color of the dropdown button when the dropdown content is shown */
+
+.dropdown:hover .dropbtn {
+  background-color: #3e8e41;
+}
+
     `;
 
     const script = `
-        function loadedScript() {
-            let docUri = ${JSON.stringify(docUri.toString())};
-            function drawDiagram() {
-                try {
-                    let width = window.innerWidth - 6;
-                    let height = window.innerHeight;
-                    const options = {
-                        target: document.getElementById("diagram"),
-                        editorProps: {
-                            docUri,
-                            width,
-                            height,
-                            langClient: getLangClient()
-                        }
-                    };
-                    const diagram = ballerinaComposer.renderDiagramEditor(options);
-                    webViewRPCHandler.addMethod("updateAST", (args) => {
-                        console.log(args);
-                        diagram.updateAST(args[0]);
-                        return Promise.resolve({});
-                    });
-                } catch(e) {
-                    console.log(e.stack);
-                    drawError('Oops. Something went wrong. ' + e.message);
-                }
-            }
-            function drawError(message) {
-                document.getElementById("diagram").innerHTML = \`
-                <div id="errors">
-                    <span>\$\{message\}</span>
-                </div>
-                \`;
-            }
-            function showWarning(message) {
-                document.getElementById("warning").innerHTML = \`
-                    <p><span class="fw fw-warning"></span> \$\{message\}</p>
-                \`;
-            }
-            drawDiagram();
-        }
     `;
 
     return getLibraryWebViewContent(context, body, script, styles);
