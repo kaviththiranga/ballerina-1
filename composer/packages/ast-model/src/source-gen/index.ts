@@ -1,5 +1,6 @@
 import { BallerinaEndpoint } from "@ballerina/lang-service";
-import { ASTNode, Block, Function as BalFunction, Service, UserDefinedType, Variable } from "../ast-interfaces";
+import { ASTNode, Block, CompilationUnit, Function as BalFunction, Import,
+            Service, UserDefinedType, Variable } from "../ast-interfaces";
 import { Visitor } from "../base-visitor";
 import { ASTKindChecker } from "../check-kind-util";
 import * as defaults from "../default-nodes";
@@ -158,7 +159,7 @@ export function addForeachToBlock(block: Block, ast: ASTNode, insertAt?: number)
 
 export function addEndpointToBlock(block: Block, ast: ASTNode, endpointDef: BallerinaEndpoint, insertAt?: number) {
     const endpointNode = defaults.createEndpointNode();
-    const { name, packageName } = endpointDef;
+    const { name, packageName, orgName } = endpointDef;
     // Update type to match def
     const endpointType = endpointNode.variable.typeNode as UserDefinedType;
     endpointType.typeName.value = name;
@@ -178,6 +179,45 @@ export function addEndpointToBlock(block: Block, ast: ASTNode, endpointDef: Ball
     if (insertAt === undefined) {
         insertAt = block.statements.length;
     }
+
+    // add import if necessary
+    const cU = ast as CompilationUnit;
+    const importNodes = cU.topLevelNodes.filter((node) => ASTKindChecker.isImport(node));
+    const importNode = importNodes.find((node) => {
+        const {
+                orgName: {
+                    value: orgNameValue
+                },
+                packageName: pkgNameParts,
+                alias: {
+                    value: aliasValue
+                }
+
+            } = node as Import;
+        return orgNameValue === orgName
+                && pkgNameParts[0].value === packageName
+                && aliasValue === name;
+    });
+    if (!importNode) {
+        // found import already
+        const newImport = defaults.createImportNode();
+        newImport.orgName.value = orgName;
+        newImport.alias.value = packageName;
+        newImport.packageName[0].value = packageName;
+        const importWS = getWS(endpointNode);
+        importWS.forEach((ws) => {
+            if (ws.text === "http") {
+                ws.text = packageName;
+                return;
+            }
+            if (ws.text === "Client") {
+                ws.text = name;
+            }
+        });
+        attachNodeSilently(newImport, ast, ast, "topLevelNodes", 0);
+    }
+
+    // add endpoint def
     attachNode(endpointNode, ast, block, "statements", insertAt);
 }
 

@@ -7,6 +7,7 @@ export interface BallerinaASTNode {
     kind: string;
 }
 export interface BallerinaEndpoint {
+    orgName: string;
     packageName: string;
     name: string;
 }

@@ -20,10 +20,12 @@ export class MockLangClient extends EmptyLanguageClient {
     return Promise.resolve([
       {
         name: "Client",
+        orgName: "ballerina",
         packageName: "http"
       },
       {
         name: "Client",
+        orgName: "ballerina",
         packageName: "jms"
       }
     ]);
