@@ -176,7 +176,7 @@ function genMethodForBallerinaFunction(bir:Function func,
 
             bir:BasicBlock?[] bbArray = func.paramDefaultBBs[paramBBCounter];
             generateBasicBlocks(mv, bbArray, labelGen, errorGen, instGen, termGen, func, returnVarRefIndex,
-                                stateVarIndex, localVarOffset, true, module, currentPackageName);
+                                stateVarIndex, localVarOffset, true, module, currentPackageName, attachedType);
             mv.visitLabel(paramNextLabel);
             paramBBCounter += 1;
         }
@@ -199,7 +199,7 @@ function genMethodForBallerinaFunction(bir:Function func,
     mv.visitLookupSwitchInsn(yieldLable, states, lables);
 
     generateBasicBlocks(mv, basicBlocks, labelGen, errorGen, instGen, termGen, func, returnVarRefIndex, stateVarIndex,
-                            localVarOffset, false, module, currentPackageName);
+                            localVarOffset, false, module, currentPackageName, attachedType);
 
     string frameName = getFrameClassName(currentPackageName, funcName, attachedType);
     mv.visitLabel(resumeLable);
@@ -494,13 +494,14 @@ function getJVMTypeSign(bir:BType bType) returns string {
 function generateBasicBlocks(jvm:MethodVisitor mv, bir:BasicBlock?[] basicBlocks, LabelGenerator labelGen,
             ErrorHandlerGenerator errorGen, InstructionGenerator instGen, TerminatorGenerator termGen,
             bir:Function func, int returnVarRefIndex, int stateVarIndex, int localVarOffset, boolean isArg,
-            bir:Package module, string currentPackageName) {
+            bir:Package module, string currentPackageName, bir:BType? attachedType) {
     int j = 0;
     string funcName = cleanupFunctionName(untaint func.name.value);
 
     // process error entries
     bir:ErrorEntry?[] errorEntries = func.errorEntries;
     bir:ErrorEntry? currentEE = ();
+    string[] errorVarNames = []; 
     jvm:Label endLabel = new;
     jvm:Label handlerLabel = new;
     jvm:Label jumpLabel = new;
@@ -528,7 +529,8 @@ function generateBasicBlocks(jvm:MethodVisitor mv, bir:BasicBlock?[] basicBlocks
             handlerLabel = new;
             jumpLabel = new;
             // start try for instructions.
-            errorGen.generateTryInsForTrap(<bir:ErrorEntry>currentEE, endLabel, handlerLabel, jumpLabel);
+            errorGen.generateTryInsForTrap(<bir:ErrorEntry>currentEE, errorVarNames, endLabel, 
+                                                handlerLabel, jumpLabel);
         }
         while (m < insCount) {
             jvm:Label insLabel = labelGen.getLabel(funcName + bb.id.value + "ins" + m);
@@ -649,13 +651,14 @@ function generateBasicBlocks(jvm:MethodVisitor mv, bir:BasicBlock?[] basicBlocks
                 handlerLabel = new;
                 jumpLabel = new;
                 // start try for terminator if current block is trapped.
-                errorGen.generateTryInsForTrap(<bir:ErrorEntry>currentEE, endLabel, handlerLabel, jumpLabel);
+                errorGen.generateTryInsForTrap(<bir:ErrorEntry>currentEE, errorVarNames, endLabel, 
+                                                handlerLabel, jumpLabel);
             }
             generateDiagnosticPos(terminator.pos, mv);
             if (isModuleInitFunction(module, func) && terminator is bir:Return) {
                 generateAnnotLoad(mv, module.typeDefs, getPackageName(module.org.value, module.name.value));
             }
-            termGen.genTerminator(terminator, func, funcName, localVarOffset, returnVarRefIndex);
+            termGen.genTerminator(terminator, func, funcName, localVarOffset, returnVarRefIndex, attachedType);
             if (isTerminatorTrapped) {
                 // close the started try block with a catch statement for terminator.
                 errorGen.generateCatchInsForTrap(<bir:ErrorEntry>currentEE, endLabel, handlerLabel, jumpLabel);
@@ -690,11 +693,13 @@ function genYieldCheck(jvm:MethodVisitor mv, LabelGenerator labelGen, bir:BasicB
     mv.visitJumpInsn(GOTO, gotoLabel);
 }
 
-function generateLambdaMethod(bir:AsyncCall|bir:FPLoad ins, jvm:ClassWriter cw, string className, string lambdaName) {
+function generateLambdaMethod(bir:AsyncCall|bir:FPLoad ins, jvm:ClassWriter cw, string lambdaName) {
     bir:BType? lhsType;
     string orgName;
     string moduleName;
-    string funcName; 
+    string funcName;
+    int paramIndex = 1;
+    boolean isVirtual = ins is bir:AsyncCall &&  ins.isVirtual;
     if (ins is bir:AsyncCall) {
         lhsType = ins.lhsOp.typeValue;
         orgName = ins.pkgID.org;
@@ -707,8 +712,8 @@ function generateLambdaMethod(bir:AsyncCall|bir:FPLoad ins, jvm:ClassWriter cw, 
         funcName = ins.name.value;
     }
 
-    string lookupKey = getPackageName(orgName, moduleName) + funcName;
-    string jvmClass = lookupFullQualifiedClassName(lookupKey);
+    boolean isExternFunction =  isExternStaticFunctionCall(ins);
+    boolean isBuiltinModule = isBallerinaBuiltinModule(orgName, moduleName);
 
     bir:BType returnType = bir:TYPE_NIL;
     if (lhsType is bir:BFutureType) {
@@ -747,7 +752,7 @@ function generateLambdaMethod(bir:AsyncCall|bir:FPLoad ins, jvm:ClassWriter cw, 
     mv.visitInsn(AALOAD);
     mv.visitTypeInsn(CHECKCAST, STRAND);
 
-    if (isExternStaticFunctionCall(ins)) {
+    if (isExternFunction) {
         jvm:Label blockedOnExternLabel = new;
 
         mv.visitInsn(DUP);
@@ -770,29 +775,43 @@ function generateLambdaMethod(bir:AsyncCall|bir:FPLoad ins, jvm:ClassWriter cw, 
 
         mv.visitLabel(blockedOnExternLabel);
     }
-
     bir:BType?[] paramBTypes = [];
+  
     if (ins is bir:AsyncCall) {
         bir:VarRef?[] paramTypes = ins.args;
-        // load and cast param values
-        int paramIndex = 1;
-        int argIndex = 1;
-        foreach var paramType in paramTypes {
-            bir:VarRef ref = getVarRef(paramType);
-            mv.visitVarInsn(ALOAD, 0);
-            mv.visitIntInsn(BIPUSH, argIndex);
-            mv.visitInsn(AALOAD);
-            addUnboxInsn(mv, ref.typeValue);
-            paramBTypes[paramIndex -1] = paramType.typeValue;
-            paramIndex += 1;
-
-            argIndex += 1;
-            if (!isBallerinaBuiltinModule(orgName, moduleName)) {
-                addBooleanTypeToLambdaParamTypes(mv, 0, argIndex);
-                paramBTypes[paramIndex -1] = "boolean";
+        if (isVirtual) {
+            genLoadDataForObjectAttachedLambdas(ins, mv, closureMapsCount, paramTypes , isBuiltinModule);
+            int paramTypeIndex = 1;
+            paramIndex = 2;
+            while ( paramTypeIndex < paramTypes.length()) {
+                generateObjectArgs(mv, paramIndex);
+                paramTypeIndex += 1;
                 paramIndex += 1;
-            }  
-            argIndex += 1;
+                if (!isBuiltinModule) {
+                    generateObjectArgs(mv, paramIndex);
+                    paramIndex += 1;
+                }
+            }
+        } else {
+            // load and cast param values
+            int argIndex = 1;
+            foreach var paramType in paramTypes {
+                bir:VarRef ref = getVarRef(paramType);
+                mv.visitVarInsn(ALOAD, 0);
+                mv.visitIntInsn(BIPUSH, argIndex);
+                mv.visitInsn(AALOAD);
+                addUnboxInsn(mv, ref.typeValue);
+                paramBTypes[paramIndex -1] = paramType.typeValue;
+                paramIndex += 1;
+    
+                argIndex += 1;
+                if (!isBuiltinModule) {
+                    addBooleanTypeToLambdaParamTypes(mv, 0, argIndex);
+                    paramBTypes[paramIndex -1] = "boolean";
+                    paramIndex += 1;
+                }  
+                argIndex += 1;
+            }
         }
     } else {
         //load closureMaps
@@ -805,7 +824,7 @@ function generateLambdaMethod(bir:AsyncCall|bir:FPLoad ins, jvm:ClassWriter cw, 
 
         bir:VariableDcl?[] paramTypes = ins.params;
         // load and cast param values
-        int paramIndex = 1;
+
         int argIndex = 1;
         foreach var paramType in paramTypes {
             bir:VariableDcl dcl = getVariableDcl(paramType);
@@ -818,7 +837,7 @@ function generateLambdaMethod(bir:AsyncCall|bir:FPLoad ins, jvm:ClassWriter cw, 
             i += 1;
             argIndex += 1;
             
-            if (!isBallerinaBuiltinModule(orgName, moduleName)) {
+            if (!isBuiltinModule) {
                 addBooleanTypeToLambdaParamTypes(mv, closureMapsCount, argIndex);
                 paramBTypes[paramIndex -1] = "boolean";
                 paramIndex += 1;
@@ -826,8 +845,16 @@ function generateLambdaMethod(bir:AsyncCall|bir:FPLoad ins, jvm:ClassWriter cw, 
             argIndex += 1; 
         }
     }
-
-    mv.visitMethodInsn(INVOKESTATIC, jvmClass, funcName, getLambdaMethodDesc(paramBTypes, returnType, closureMapsCount), false);
+    
+    if (isVirtual) {
+        string methodDesc = io:sprintf("(L%s;L%s;[L%s;)L%s;", STRAND, STRING_VALUE, OBJECT, OBJECT);
+        mv.visitMethodInsn(INVOKEINTERFACE, OBJECT_VALUE, "call", methodDesc, true);
+    } else {
+        string methodDesc = getLambdaMethodDesc(paramBTypes, returnType, closureMapsCount);
+        string jvmClass = lookupFullQualifiedClassName(getPackageName(orgName, moduleName) + funcName);
+        mv.visitMethodInsn(INVOKESTATIC, jvmClass, funcName, getLambdaMethodDesc(paramBTypes, returnType,
+                           closureMapsCount), false);
+    }
     
     if (isVoid) {
         mv.visitInsn(RETURN);
@@ -838,6 +865,38 @@ function generateLambdaMethod(bir:AsyncCall|bir:FPLoad ins, jvm:ClassWriter cw, 
 
     mv.visitMaxs(0,0);
     mv.visitEnd();
+}
+
+function genLoadDataForObjectAttachedLambdas(bir:AsyncCall ins, jvm:MethodVisitor mv, int closureMapsCount,
+                    bir:VarRef?[] paramTypes , boolean isBuiltinModule) {
+    mv.visitInsn(POP);
+    mv.visitVarInsn(ALOAD, closureMapsCount);
+    mv.visitInsn(ICONST_1);
+    bir:VarRef ref = getVarRef(ins.args[0]);
+    mv.visitInsn(AALOAD);
+    addUnboxInsn(mv, ref.typeValue);
+    mv.visitVarInsn(ALOAD, closureMapsCount);
+    mv.visitInsn(ICONST_0);
+    mv.visitInsn(AALOAD);
+    mv.visitTypeInsn(CHECKCAST, STRAND);
+  
+    mv.visitLdcInsn(cleanupObjectTypeName(ins.name.value));
+    int objectArrayLength = paramTypes.length() - 1;
+    if (!isBuiltinModule) {
+        mv.visitIntInsn(BIPUSH, objectArrayLength * 2);
+    } else {
+        mv.visitIntInsn(BIPUSH, objectArrayLength);
+    }
+    mv.visitTypeInsn(ANEWARRAY, OBJECT);
+}
+
+function generateObjectArgs(jvm:MethodVisitor mv, int paramIndex) {
+    mv.visitInsn(DUP);
+    mv.visitIntInsn(BIPUSH, paramIndex - 2);
+    mv.visitVarInsn(ALOAD, 0);
+    mv.visitIntInsn(BIPUSH, paramIndex + 1);
+    mv.visitInsn(AALOAD);
+    mv.visitInsn(AASTORE);
 }
 
 function addBooleanTypeToLambdaParamTypes(jvm:MethodVisitor mv, int arrayIndex, int paramIndex) {
@@ -1874,4 +1933,13 @@ function checkStrandCancelled(jvm:MethodVisitor mv, int localVarOffset) {
     mv.visitInsn(ATHROW);
     
     mv.visitLabel(notCancelledLabel);
+}
+
+function stringArrayContains(string[] array, string item) returns boolean {
+    foreach var listItem in array {
+        if (listItem.equalsIgnoreCase(item)) {
+            return true;
+        }
+    }
+    return false;
 }
