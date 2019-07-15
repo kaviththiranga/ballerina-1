@@ -262,17 +262,24 @@ function genMethodForBallerinaFunction(bir:Function func,
         jvm:Label startLabel = methodStartLabel;
         jvm:Label endLabel = methodEndLabel;
         if ((localVar.kind is bir:LocalVarKind || localVar is bir:FunctionParam) 
-            && !(localVar.meta["name"] is () || localVar.meta["name"] == "")) {
+            && !(localVar.meta?.name is () || localVar.meta?.name == "")) {
             if (localVar.kind is bir:LocalVarKind) {
-                startLabel = labelGen.getLabel(funcName + localVar.meta.startBBID + "ins" + localVar.meta.insOffset);
-                endLabel = labelGen.getLabel(funcName + localVar.meta.endBBID + "beforeTerm");
+                string? startBBID = localVar.meta?.startBBID;
+                int? insOffset = localVar.meta?.insOffset;
+                string? endBBID = localVar.meta?.endBBID;
+                if (startBBID is string && insOffset is int) {
+                    startLabel = labelGen.getLabel(funcName + startBBID + "ins" + insOffset);
+                } 
+                if (endBBID is string) {
+                    endLabel = labelGen.getLabel(funcName + endBBID + "beforeTerm");
+                }
             }
-            mv.visitLocalVariable(localVar.meta.name, getJVMTypeSign(localVar.typeValue), 
+            mv.visitLocalVariable(<string> localVar.meta?.name, getJVMTypeSign(localVar.typeValue), 
                 startLabel, endLabel, indexMap.getIndex(localVar));
         }
         k = k + 1;
     }
-    
+
     mv.visitMaxs(200, 400);
     mv.visitEnd();
 }
