@@ -542,6 +542,7 @@ function generateBasicBlocks(jvm:MethodVisitor mv, bir:BasicBlock?[] basicBlocks
     while (j < basicBlocks.length()) {
         bir:BasicBlock bb = getBasicBlock(basicBlocks[j]);
         string currentBBName = io:sprintf("%s", bb.id.value);
+        
 
         // create jvm label
         jvm:Label bbLabel = labelGen.getLabel(funcName + bb.id.value);
@@ -561,10 +562,17 @@ function generateBasicBlocks(jvm:MethodVisitor mv, bir:BasicBlock?[] basicBlocks
             errorGen.generateTryInsForTrap(<bir:ErrorEntry>currentEE, errorVarNames, endLabel, 
                                                 handlerLabel, jumpLabel);
         }
+        
         while (m < insCount) {
-            jvm:Label insLabel = labelGen.getLabel(funcName + bb.id.value + "ins" + m);
-            mv.visitLabel(insLabel);
             bir:Instruction? inst = bb.instructions[m];
+            // if this a var declarion, create a label to mark start position for calculating
+            // visible range of the variable while debugging
+            var lhsOp = inst["lhsOp"];
+            if (lhsOp is bir:VarRef) {
+                var meta = lhsOp.variableDcl.meta;
+                jvm:Label insLabel = labelGen.getLabel(funcName + meta.startBBID + "ins" + meta.insOffset);
+                mv.visitLabel(insLabel);
+            }
             var pos = inst?.pos;
             if (pos is bir:DiagnosticPos) {
                 generateDiagnosticPos(pos, mv);
