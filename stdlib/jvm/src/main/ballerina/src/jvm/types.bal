@@ -84,6 +84,8 @@ public type Label object {
     }
 
     function init() = external;
+
+    public function getOffset() returns int = external;
 };
 
 public type FieldVisitor object {

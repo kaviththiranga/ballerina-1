@@ -571,7 +571,9 @@ function generateBasicBlocks(jvm:MethodVisitor mv, bir:BasicBlock?[] basicBlocks
             if (lhsOp is bir:VarRef) {
                 var meta = lhsOp.variableDcl.meta;
                 jvm:Label insLabel = labelGen.getLabel(funcName + meta.startBBID + "ins" + meta.insOffset);
-                mv.visitLabel(insLabel);
+                if (!(insLabel.getOffset() > 0)) {
+                    mv.visitLabel(insLabel);
+                }
             }
             var pos = inst?.pos;
             if (pos is bir:DiagnosticPos) {
