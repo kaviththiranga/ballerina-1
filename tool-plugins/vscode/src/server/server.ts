@@ -18,11 +18,11 @@
  *
  */
 import * as path from 'path';
-import { log } from '../utils/logger';
+import { debug } from '../utils/logger';
 import { ServerOptions, ExecutableOptions } from 'vscode-languageclient';
 
 export function getServerOptions(ballerinaHome: string, experimental: boolean, debugLogsEnabled: boolean) : ServerOptions {
-    log(`Using Ballerina installation at ${ballerinaHome} for Language server.`);
+    debug(`Using Ballerina installation at ${ballerinaHome} for Language server.`);
 
     let cmd;
     const cwd = path.join(ballerinaHome, 'lib', 'tools', 'lang-server', 'launcher');
@@ -40,11 +40,11 @@ export function getServerOptions(ballerinaHome: string, experimental: boolean, d
         opt.env.BALLERINA_HOME = ballerinaHome;
     }
     if (process.env.LSDEBUG === "true") {
-        log('Language Server is starting in debug mode.');
+        debug('Language Server is starting in debug mode.');
         args.push('--debug');
     }
     if (debugLogsEnabled) {
-        log('Language Server debug logs enabled.');
+        debug('Language Server debug logs enabled.');
         opt.env.DEBUG_LOG = debugLogsEnabled;
     }
     if (process.env.LS_CUSTOM_CLASSPATH) {
