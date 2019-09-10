@@ -507,7 +507,7 @@ public class BallerinaDocGenerator {
         CompilerContext context = new CompilerContext();
         CompilerOptions options = CompilerOptions.getInstance(context);
         options.put(CompilerOptionName.PROJECT_DIR, sourceRoot);
-        options.put(CompilerOptionName.COMPILER_PHASE, CompilerPhase.TYPE_CHECK.toString());
+        options.put(CompilerOptionName.COMPILER_PHASE, CompilerPhase.CODE_ANALYZE.toString());
         options.put(CompilerOptionName.PRESERVE_WHITESPACE, "false");
         options.put(CompilerOptionName.OFFLINE, Boolean.valueOf(offline).toString());
         options.put(CompilerOptionName.EXPERIMENTAL_FEATURES_ENABLED, Boolean.TRUE.toString());

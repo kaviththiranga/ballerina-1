@@ -14,15 +14,13 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerinax/java;
-
 # Checks whether the given string contains a particular substring.
 #
 # + originalString - the original string
 # + substring - string to match
 # + return - `true` if the original string contains the substring or `false` otherwise
 public function contains(string originalString, string substring) returns boolean {
-    return containsExternal(java:fromString(originalString), java:fromString(substring));
+    return true;
 }
 
 # Checks if two strings are equal ignoring the case of the strings.
@@ -31,7 +29,7 @@ public function contains(string originalString, string substring) returns boolea
 # + secondString - second string to compare
 # + return - `true` if the two strings are the same or`false` if the strings do not match
 public function equalsIgnoreCase(string firstString, string secondString) returns boolean {
-    return equalsIgnoreCaseExternal(java:fromString(firstString), java:fromString(secondString));
+    return true;
 }
 
 # Returns a hash code for a given string.
@@ -39,7 +37,7 @@ public function equalsIgnoreCase(string firstString, string secondString) return
 # + stringValue - string to generate hash code
 # + return - Hash code for the given string
 public function hashCode(string stringValue) returns int {
-    return hashCodeExternal(java:fromString(stringValue));
+    return 1;
 }
 
 # Returns the last index of the provided substring within a string.
@@ -48,7 +46,7 @@ public function hashCode(string stringValue) returns int {
 # + substring - string to look for
 # + return - starting point of the last appearance of the provided substring
 public function lastIndexOf(string originalString, string substring) returns int {
-    return lastIndexOfExternal(java:fromString(originalString), java:fromString(substring));
+    return 1;
 }
 
 # Checks whether the given string matches the provided regex.
@@ -57,7 +55,7 @@ public function lastIndexOf(string originalString, string substring) returns int
 # + regex - regex to match with the string
 # + return - `true` if the provided string is matched with the regex, `false` otherwise
 public function matches(string stringToMatch, string regex) returns boolean {
-    return matchesExternal(java:fromString(stringToMatch), java:fromString(regex));
+    return true;
 }
 
 # Replaces each substring of this string that matches the literal target sequence with the specified literal
@@ -68,7 +66,7 @@ public function matches(string stringToMatch, string regex) returns boolean {
 # + replacement - replacement string
 # + return - the resultant string
 public function replace(string originalText, string textToReplace, string replacement) returns string {
-    return replaceExternal(java:fromString(originalText), java:fromString(textToReplace), java:fromString(replacement));
+    return "";
 }
 
 # Replaces each substring which matches the given regular expression, from the given original string value, with the
@@ -79,7 +77,7 @@ public function replace(string originalText, string textToReplace, string replac
 # + replacement - the replacement string
 # + return - the resultant string
 public function replaceAll(string originalString, string regex, string replacement) returns string {
-    return replaceAllExternal(java:fromString(originalString), java:fromString(regex), java:fromString(replacement));
+    return "";
 }
 
 # Replaces the first substring that matches the given sequence from the provided string, with the specified literal
@@ -90,9 +88,7 @@ public function replaceAll(string originalString, string regex, string replaceme
 # + replacement - the replacement string
 # + return - the resultant string
 public function replaceFirst(string originalString, string stringToReplace, string replacement) returns string {
-    return replaceFirstExternal(java:fromString(originalString),
-                                java:fromString(stringToReplace),
-                                java:fromString(replacement));
+    return "";
 }
 
 # Splits a string around matches of the given delimiter.
@@ -101,8 +97,7 @@ public function replaceFirst(string originalString, string stringToReplace, stri
 # + delimiter - delimiter
 # + return - array of strings
 public function split(string receiver, string delimiter) returns string[] {
-    handle res = splitExternal(java:fromString(receiver), java:fromString(delimiter));
-    return getBallerinaStringArray(res);
+    return [""];
 }
 
 # Returns a boolean value of a given string.
@@ -110,72 +105,6 @@ public function split(string receiver, string delimiter) returns string[] {
 # + stringValue - string value to convert to boolean
 # + return - boolean value of the string
 public function toBoolean(string stringValue) returns boolean {
-    return toBooleanExternal(java:fromString(stringValue));
+    return true;
 }
 
-// Interoperable external functions.
-function containsExternal(handle originalString, handle substring) returns boolean = @java:Method {
-    name: "contains",
-    class: "java.lang.String",
-    paramTypes: ["java.lang.String"]
-} external;
-
-function equalsIgnoreCaseExternal(handle firstString, handle secondString) returns boolean = @java:Method {
-    name: "equalsIgnoreCase",
-    class: "java.lang.String",
-    paramTypes: ["java.lang.String"]
-} external;
-
-function lastIndexOfExternal(handle originalString, handle substring) returns int = @java:Method {
-    name: "lastIndexOf",
-    class: "java.lang.String",
-    paramTypes: ["java.lang.String"]
-} external;
-
-function matchesExternal(handle stringToMatch, handle regex) returns boolean = @java:Method {
-    name: "matches",
-    class: "java.lang.String",
-    paramTypes: ["java.lang.String"]
-} external;
-
-function replaceExternal(handle originalText, handle textToReplace, handle replacement) returns string = @java:Method {
-    name: "replace",
-    class: "java.lang.String",
-    paramTypes: ["java.lang.String", "java.lang.String"]
-} external;
-
-function replaceAllExternal(handle originalString, handle regex, handle replacement) returns string = @java:Method {
-    name: "replaceAll",
-    class: "java.lang.String",
-    paramTypes: ["java.lang.String", "java.lang.String"]
-} external;
-
-function replaceFirstExternal(handle originalString, handle stringToReplace, handle replacement) returns
-                            string = @java:Method {
-    name: "replaceFirst",
-    class: "java.lang.String",
-    paramTypes: ["java.lang.String", "java.lang.String"]
-} external;
-
-function splitExternal(handle receiver, handle delimiter) returns handle = @java:Method {
-    name: "split",
-    class: "java.lang.String",
-    paramTypes: ["java.lang.String"]
-} external;
-
-function hashCodeExternal(handle stringValue) returns int = @java:Method {
-    name: "hashCode",
-    class: "java.lang.String",
-    paramTypes: ["java.lang.String"]
-} external;
-
-function toBooleanExternal(handle stringValue) returns boolean = @java:Method {
-    name: "valueOf",
-    class: "java.lang.Boolean",
-    paramTypes: ["java.lang.String"]
-} external;
-
-function getBallerinaStringArray(handle h) returns string[] = @java:Constructor {
-    class:"org/ballerinalang/jvm/values/ArrayValue",
-    paramTypes:["[Ljava.lang.String;"]
-} external;
