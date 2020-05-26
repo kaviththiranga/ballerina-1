@@ -24,6 +24,7 @@ import org.ballerinalang.jvm.types.BTypes;
 import org.ballerinalang.jvm.values.MapValue;
 import org.ballerinalang.jvm.values.MapValueImpl;
 import org.ballerinalang.jvm.values.ObjectValue;
+import org.ballerinalang.jvm.values.api.BString;
 import org.ballerinalang.mime.util.EntityBodyHandler;
 import org.ballerinalang.net.http.HttpConstants;
 import org.ballerinalang.net.http.HttpErrorType;
@@ -43,6 +44,8 @@ import static org.ballerinalang.net.http.HttpUtil.checkRequestBodySizeHeadersAva
  */
 public class ExternRequest {
 
+    private static final BMapType mapType = new BMapType(new BArrayType(BTypes.typeString));
+
     public static ObjectValue createNewEntity(ObjectValue requestObj) {
         return HttpUtil.createNewEntity(requestObj);
     }
@@ -51,16 +54,16 @@ public class ExternRequest {
         HttpUtil.setEntity(requestObj, entityObj, true);
     }
 
-    public static MapValue<String, Object> getQueryParams(ObjectValue requestObj) {
+    @SuppressWarnings("unchecked")
+    public static MapValue<BString, Object> getQueryParams(ObjectValue requestObj) {
         try {
             Object queryParams = requestObj.getNativeData(QUERY_PARAM_MAP);
             if (queryParams != null) {
-                return (MapValue<String, Object>) queryParams;
+                return (MapValue<BString, Object>) queryParams;
             }
             HttpCarbonMessage httpCarbonMessage = (HttpCarbonMessage) requestObj
                     .getNativeData(HttpConstants.TRANSPORT_MESSAGE);
-            BMapType mapType = new BMapType(new BArrayType(BTypes.typeString));
-            MapValue<String, Object> params = new MapValueImpl<>(mapType);
+            MapValue<BString, Object> params = new MapValueImpl<>(mapType);
             Object rawQueryString = httpCarbonMessage.getProperty(HttpConstants.RAW_QUERY_STR);
             if (rawQueryString != null) {
                 URIUtil.populateQueryParamMap((String) rawQueryString, params);
@@ -73,7 +76,7 @@ public class ExternRequest {
         }
     }
 
-    public static MapValue<String, Object> getMatrixParams(ObjectValue requestObj, String path) {
+    public static MapValue<BString, Object> getMatrixParams(ObjectValue requestObj, String path) {
         HttpCarbonMessage httpCarbonMessage = HttpUtil.getCarbonMsg(requestObj, null);
         return URIUtil.getMatrixParamsMap(path, httpCarbonMessage);
     }

@@ -645,7 +645,8 @@ public class BCompileUtil {
     public static ExitDetails run(CompileResult compileResult, String[] args) {
         BLangPackage compiledPkg = ((BLangPackage) compileResult.getAST());
         String initClassName = BFileUtil.getQualifiedClassName(compiledPkg.packageID.orgName.value,
-                compiledPkg.packageID.name.value, MODULE_INIT_CLASS_NAME);
+                                                               compiledPkg.packageID.name.value,
+                                                               MODULE_INIT_CLASS_NAME);
         URLClassLoader classLoader = compileResult.classLoader;
 
 

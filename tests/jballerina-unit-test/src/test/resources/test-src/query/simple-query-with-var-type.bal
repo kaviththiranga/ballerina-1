@@ -1,18 +1,41 @@
 type Person record {|
-   string firstName;
-   string lastName;
-   int age;
+    string firstName;
+    string lastName;
+    int age;
 |};
 
 type Teacher record {|
-   string firstName;
-   string lastName;
-   int age;
-   string teacherId;
+    string firstName;
+    string lastName;
+    int age;
+    string teacherId;
 |};
 
+type NumberGenerator object {
+    int i = 0;
+    public function next() returns record {|int value;|}|error? {
+        //closes the stream after 5 events
+        if (self.i == 5) {
+            return ();
+        }
+        self.i += 1;
+        return {value: self.i};
+    }
+};
 
-function testSimpleSelectQueryWithSimpleVariable() returns Person[]{
+type ResultValue record {|
+    Person value;
+|};
+
+function getRecordValue((record {| Person value; |}|error?)|(record {| Person value; |}?) returnedVal) returns Person? {
+   if (returnedVal is ResultValue) {
+      return returnedVal.value;
+   } else {
+      return ();
+   }
+}
+
+function testSimpleSelectQueryWithSimpleVariable() returns Person[] {
     Person p1 = {firstName: "Alex", lastName: "George", age: 23};
     Person p2 = {firstName: "Ranjan", lastName: "Fonseka", age: 30};
     Person p3 = {firstName: "John", lastName: "David", age: 33};
@@ -27,13 +50,13 @@ function testSimpleSelectQueryWithSimpleVariable() returns Person[]{
                    age: person.age
             };
 
-    return  outputPersonList;
+    return outputPersonList;
 }
 
-function testSimpleSelectQueryWithRecordVariable() returns Person[]{
-    Person p1 = {firstName:"Alex", lastName: "George", age: 23};
-    Person p2 = {firstName:"Ranjan", lastName: "Fonseka", age: 30};
-    Person p3 = {firstName:"John", lastName: "David", age: 33};
+function testSimpleSelectQueryWithRecordVariable() returns Person[] {
+    Person p1 = {firstName: "Alex", lastName: "George", age: 23};
+    Person p2 = {firstName: "Ranjan", lastName: "Fonseka", age: 30};
+    Person p3 = {firstName: "John", lastName: "David", age: 33};
 
     Person[] personList = [p1, p2, p3];
 
@@ -45,13 +68,13 @@ function testSimpleSelectQueryWithRecordVariable() returns Person[]{
                    age: a
             };
 
-    return  outputPersonList;
+    return outputPersonList;
 }
 
-function testSimpleSelectQueryWithRecordVariableV2() returns Person[]{
-    Person p1 = {firstName:"Alex", lastName: "George", age: 23};
-    Person p2 = {firstName:"Ranjan", lastName: "Fonseka", age: 30};
-    Person p3 = {firstName:"John", lastName: "David", age: 33};
+function testSimpleSelectQueryWithRecordVariableV2() returns Person[] {
+    Person p1 = {firstName: "Alex", lastName: "George", age: 23};
+    Person p2 = {firstName: "Ranjan", lastName: "Fonseka", age: 30};
+    Person p3 = {firstName: "John", lastName: "David", age: 33};
 
     Person[] personList = [p1, p2, p3];
 
@@ -63,13 +86,13 @@ function testSimpleSelectQueryWithRecordVariableV2() returns Person[]{
                    age: age
             };
 
-    return  outputPersonList;
+    return outputPersonList;
 }
 
-function testSimpleSelectQueryWithRecordVariableV3() returns Person[]{
-    Teacher p1 = {firstName:"Alex", lastName: "George", age: 23, teacherId: "XYZ01"};
-    Teacher p2 = {firstName:"Ranjan", lastName: "Fonseka", age: 30, teacherId: "ABC01"};
-    Teacher p3 = {firstName:"John", lastName: "David", age: 33, teacherId: "ABC10"};
+function testSimpleSelectQueryWithRecordVariableV3() returns Person[] {
+    Teacher p1 = {firstName: "Alex", lastName: "George", age: 23, teacherId: "XYZ01"};
+    Teacher p2 = {firstName: "Ranjan", lastName: "Fonseka", age: 30, teacherId: "ABC01"};
+    Teacher p3 = {firstName: "John", lastName: "David", age: 33, teacherId: "ABC10"};
 
     Teacher[] teacherList = [p1, p2, p3];
 
@@ -81,13 +104,13 @@ function testSimpleSelectQueryWithRecordVariableV3() returns Person[]{
                    age: age
             };
 
-    return  outputPersonList;
+    return outputPersonList;
 }
 
-function testSimpleSelectQueryWithWhereClause() returns Person[]{
-    Person p1 = {firstName:"Alex", lastName: "George", age: 23};
-    Person p2 = {firstName:"Ranjan", lastName: "Fonseka", age: 30};
-    Person p3 = {firstName:"John", lastName: "David", age: 33};
+function testSimpleSelectQueryWithWhereClause() returns Person[] {
+    Person p1 = {firstName: "Alex", lastName: "George", age: 23};
+    Person p2 = {firstName: "Ranjan", lastName: "Fonseka", age: 30};
+    Person p3 = {firstName: "John", lastName: "David", age: 33};
 
     Person[] personList = [p1, p2, p3];
 
@@ -99,10 +122,10 @@ function testSimpleSelectQueryWithWhereClause() returns Person[]{
                    lastName: person.lastName,
                    age: person.age
             };
-    return  outputPersonList;
+    return outputPersonList;
 }
 
-function testQueryExpressionForPrimitiveType() returns int[]{
+function testQueryExpressionForPrimitiveType() returns boolean {
 
     int[] intList = [12, 13, 14, 15, 20, 21, 25];
 
@@ -111,10 +134,10 @@ function testQueryExpressionForPrimitiveType() returns int[]{
             where value > 20
             select value;
 
-    return  outputIntList;
+    return outputIntList == [21, 25];
 }
 
-function testQueryExpressionWithSelectExpression() returns string[]{
+function testQueryExpressionWithSelectExpression() returns boolean {
 
     int[] intList = [1, 2, 3];
 
@@ -122,15 +145,15 @@ function testQueryExpressionWithSelectExpression() returns string[]{
             from var value in intList
             select value.toString();
 
-    return  stringOutput;
+    return stringOutput == ["1", "2", "3"];
 }
 
 function testFilteringNullElements() returns Person[] {
 
-    Person p1 = {firstName:"Alex", lastName: "George", age: 23};
-    Person p2 = {firstName:"Ranjan", lastName: "Fonseka", age: 30};
+    Person p1 = {firstName: "Alex", lastName: "George", age: 23};
+    Person p2 = {firstName: "Ranjan", lastName: "Fonseka", age: 30};
 
-    Person?[] personList = [p1,  (), p2];
+    Person?[] personList = [p1, (), p2];
 
     var outputPersonList =
                      from var person in personList
@@ -143,30 +166,30 @@ function testFilteringNullElements() returns Person[] {
     return outputPersonList;
 }
 
-function testMapWithArity () returns string[] {
-    map<any> m = {a:"1A", b:"2B", c:"3C", d:"4D"};
+function testMapWithArity() returns boolean {
+    map<any> m = {a: "1A", b: "2B", c: "3C", d: "4D"};
     var val = from var v in m
                    where <string> v == "1A"
                    select <string>v;
-    return val;
+    return val == ["1A"];
 }
 
-function testJSONArrayWithArity() returns string[] {
-    json[] jdata = [{ name : "bob", age : 10}, { name : "tom", age : 16}];
+function testJSONArrayWithArity() returns boolean {
+    json[] jdata = [{name: "bob", age: 10}, {name: "tom", age: 16}];
     var val = from var v in jdata
                    select <string> v.name;
-    return val;
+    return val == ["bob", "tom"];
 }
 
-function testArrayWithTuple() returns string[] {
+function testArrayWithTuple() returns boolean {
     [int, string][] arr = [[1, "A"], [2, "B"], [3, "C"]];
     var val = from var [i, v] in arr
                    where i == 3
                    select v;
-    return val;
+    return val == ["C"];
 }
 
-function testQueryExpressionWithVarType() returns Teacher[]{
+function testQueryExpressionWithVarType() returns Teacher[] {
 
     Person p1 = {firstName: "Alex", lastName: "George", age: 23};
     Person p2 = {firstName: "Ranjan", lastName: "Fonseka", age: 30};
@@ -183,10 +206,10 @@ function testQueryExpressionWithVarType() returns Teacher[]{
                    teacherId: "TER1200"
             };
 
-    return  outputPersonList;
+    return outputPersonList;
 }
 
-function testSimpleSelectQueryWithSpreadOperator() returns Person[]{
+function testSimpleSelectQueryWithSpreadOperator() returns Person[] {
     Person p1 = {firstName: "Alex", lastName: "George", age: 23};
     Person p2 = {firstName: "Ranjan", lastName: "Fonseka", age: 30};
     Person p3 = {firstName: "John", lastName: "David", age: 33};
@@ -199,10 +222,10 @@ function testSimpleSelectQueryWithSpreadOperator() returns Person[]{
                    ...person
             };
 
-    return  outputPersonList;
+    return outputPersonList;
 }
 
-function testQueryExpressionWithSpreadOperatorV2() returns Teacher[]{
+function testQueryExpressionWithSpreadOperatorV2() returns Teacher[] {
 
     Person p1 = {firstName: "Alex", lastName: "George", age: 23};
     Person p2 = {firstName: "Ranjan", lastName: "Fonseka", age: 30};
@@ -217,5 +240,40 @@ function testQueryExpressionWithSpreadOperatorV2() returns Teacher[]{
                    teacherId: "TER1200"
             };
 
-    return  outputPersonList;
+    return outputPersonList;
+}
+
+public function testQueryWithStream() returns boolean {
+    NumberGenerator numGen = new;
+    var numberStream = new stream<int, error>(numGen);
+
+    var oddNumberList = from var num in numberStream
+                        where (num % 2 == 1)
+                        select num;
+    return oddNumberList == [1, 3, 5];
+}
+
+function testSimpleSelectQueryReturnStream() returns boolean {
+    boolean testPassed = true;
+    Person p1 = {firstName: "Alex", lastName: "George", age: 23};
+    Person p2 = {firstName: "Ranjan", lastName: "Fonseka", age: 30};
+    Person p3 = {firstName: "John", lastName: "David", age: 33};
+
+    Person[] personList = [p1, p2, p3];
+
+    var outputPersonStream = stream from var person in personList
+                             select {
+                                 firstName: person.firstName,
+                                 lastName: person.lastName,
+                                 age: person.age
+                             };
+    Person? returnedVal = getRecordValue(outputPersonStream.next());
+    testPassed = testPassed && (returnedVal is Person) && (returnedVal == p1);
+
+    returnedVal = getRecordValue(outputPersonStream.next());
+    testPassed = testPassed && (returnedVal is Person) && (returnedVal == p2);
+
+    returnedVal = getRecordValue(outputPersonStream.next());
+    testPassed = testPassed && (returnedVal is Person) && (returnedVal == p3);
+    return testPassed;
 }

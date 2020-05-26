@@ -24,6 +24,7 @@ import io.ballerina.plugins.idea.debugger.client.DAPClient;
 import io.ballerina.plugins.idea.debugger.client.DAPRequestManager;
 import io.ballerina.plugins.idea.debugger.client.connection.BallerinaSocketStreamConnectionProvider;
 import io.ballerina.plugins.idea.debugger.client.connection.BallerinaStreamConnectionProvider;
+import io.ballerina.plugins.idea.preloading.BallerinaCmdException;
 import io.ballerina.plugins.idea.preloading.OSUtils;
 import io.ballerina.plugins.idea.sdk.BallerinaSdkUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -36,7 +37,6 @@ import org.eclipse.lsp4j.debug.services.IDebugProtocolServer;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
@@ -59,10 +59,10 @@ public class BallerinaDAPClientConnector {
     private static final Logger LOG = Logger.getInstance(BallerinaDAPClientConnector.class);
 
     private BallerinaDebugProcess context;
-    private Project project;
-    private String entryFilePath;
-    private String host;
-    private int port;
+    private final Project project;
+    private final String entryFilePath;
+    private final String host;
+    private final int port;
     private DAPClient debugClient;
     private IDebugProtocolServer debugServer;
     private DAPRequestManager requestManager;
@@ -72,7 +72,7 @@ public class BallerinaDAPClientConnector {
     private Capabilities initializeResult;
     private ConnectionState myConnectionState;
 
-    private int debugAdapterPort;
+    private final int debugAdapterPort;
     private static final String CONFIG_SOURCE = "script";
     private static final String CONFIG_DEBUGEE_HOST = "debuggeeHost";
     private static final String CONFIG_DEBUGEE_PORT = "debuggeePort";
@@ -145,7 +145,7 @@ public class BallerinaDAPClientConnector {
                 return res;
             });
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             myConnectionState = ConnectionState.NOT_CONNECTED;
             LOG.warn("Error occurred when trying to initialize connection with the debug server.", e);
         }
@@ -213,15 +213,19 @@ public class BallerinaDAPClientConnector {
         String os = OSUtils.getOperatingSystem();
         if (os != null) {
             String balSdkPath = BallerinaSdkUtils.getBallerinaSdkFor(project).getSdkPath();
-
             // Checks for the user-configured auto detection settings.
             if (Strings.isNullOrEmpty(balSdkPath) &&
                     BallerinaProjectSettings.getStoredSettings(project).isAutodetect()) {
-                balSdkPath = BallerinaSdkUtils.autoDetectSdk(project);
+                try {
+                    balSdkPath = BallerinaSdkUtils.autoDetectSdk(project);
+                } catch (BallerinaCmdException e) {
+                    LOG.warn(String.format("failed to auto-detect ballerina home for the project %s, to start " +
+                            "debug server.", project.getName()));
+                    return null;
+                }
             }
-
             if (Strings.isNullOrEmpty(balSdkPath)) {
-                LOG.warn(String.format("Couldn't find ballerina SDK for the project %s to start debug server.",
+                LOG.warn(String.format("couldn't find ballerina SDK for the project %s to start debug server.",
                         project.getName()));
                 return null;
             }
@@ -240,7 +244,7 @@ public class BallerinaDAPClientConnector {
 
         List<String> processArgs = new ArrayList<>();
         processArgs.add(debugLauncherPath);
-        processArgs.add(String.valueOf(debugAdapterPort));
+        processArgs.add(Integer.toString(debugAdapterPort));
         return new BallerinaSocketStreamConnectionProvider(processArgs, project.getBasePath(), host, debugAdapterPort);
     }
 
