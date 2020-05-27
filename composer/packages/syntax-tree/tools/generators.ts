@@ -10,7 +10,7 @@ export function genInterfacesFileCode(modelInfo: any) {
         // tslint:disable:ban-types
         export interface STNode {
             kind: string;
-            value: any;
+            value?: any;
             parent?: STNode;
         }
 
