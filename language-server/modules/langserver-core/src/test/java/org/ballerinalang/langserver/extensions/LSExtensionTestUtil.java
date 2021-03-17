@@ -25,6 +25,8 @@ import org.ballerinalang.langserver.extensions.ballerina.document.ASTModificatio
 import org.ballerinalang.langserver.extensions.ballerina.document.BallerinaSyntaxTreeModifyRequest;
 import org.ballerinalang.langserver.extensions.ballerina.document.BallerinaSyntaxTreeRequest;
 import org.ballerinalang.langserver.extensions.ballerina.document.BallerinaSyntaxTreeResponse;
+import org.ballerinalang.langserver.extensions.ballerina.project.model.AddDependencyRequest;
+import org.ballerinalang.langserver.extensions.ballerina.project.model.AddDependencyResponse;
 import org.ballerinalang.langserver.util.FileUtils;
 import org.ballerinalang.langserver.util.TestUtil;
 import org.eclipse.lsp4j.jsonrpc.Endpoint;
@@ -45,6 +47,7 @@ public class LSExtensionTestUtil {
     private static final String SYNTAX_TREE_MODIFY = "ballerinaDocument/syntaxTreeModify";
     private static final String GET_CONNECTORS = "ballerinaConnector/connectors";
     private static final String GET_CONNECTOR = "ballerinaConnector/connector";
+    private static final String PROJECT_ADD_DEPENDENCY = "ballerinaProject/addDependency";
     private static final Gson GSON = new Gson();
     private static final JsonParser parser = new JsonParser();
 
@@ -77,6 +80,19 @@ public class LSExtensionTestUtil {
                 TestUtil.getTextDocumentIdentifier(filePath));
         CompletableFuture result = serviceEndpoint.request(AST, astRequest);
         return GSON.fromJson(getResult(result), BallerinaSyntaxTreeResponse.class);
+    }
+
+    /**
+     * Invoke the ballerinaProject/addDependency method.
+     *
+     * @param sourceRoot        Path of the Bal project
+     * @param serviceEndpoint Service Endpoint to Language Server
+     * @return {@link String}   Response as String
+     */
+    public static AddDependencyResponse addProjectDependency(String sourceRoot, Endpoint serviceEndpoint) {
+        AddDependencyRequest request = new AddDependencyRequest();
+        CompletableFuture<?> result = serviceEndpoint.request(PROJECT_ADD_DEPENDENCY, request);
+        return GSON.fromJson(getResult(result), AddDependencyResponse.class);
     }
 
     private static JsonObject getResult(CompletableFuture result) {

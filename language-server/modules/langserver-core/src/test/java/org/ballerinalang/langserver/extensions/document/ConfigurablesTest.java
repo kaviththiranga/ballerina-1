@@ -24,6 +24,7 @@ import org.ballerinalang.langserver.util.FileUtils;
 import org.ballerinalang.langserver.util.TestUtil;
 import org.eclipse.lsp4j.jsonrpc.Endpoint;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -60,5 +61,10 @@ public class ConfigurablesTest {
         JsonObject firstQualifier = qualifiers.get(0).getAsJsonObject();
         Assert.assertEquals(firstQualifier.get("kind").getAsString(), "ConfigurableKeyword");
         TestUtil.closeDocument(this.serviceEndpoint, inputFile);
+    }
+
+    @AfterClass
+    public void stopLangServer() {
+        TestUtil.shutdownLanguageServer(this.serviceEndpoint);
     }
 }

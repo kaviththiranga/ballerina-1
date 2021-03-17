@@ -18,6 +18,7 @@ package org.ballerinalang.langserver.extensions;
 import org.ballerinalang.langserver.extensions.ballerina.connector.BallerinaConnectorService;
 import org.ballerinalang.langserver.extensions.ballerina.document.BallerinaDocumentService;
 import org.ballerinalang.langserver.extensions.ballerina.example.BallerinaExampleService;
+import org.ballerinalang.langserver.extensions.ballerina.project.BallerinaProjectService;
 import org.ballerinalang.langserver.extensions.ballerina.symbol.BallerinaSymbolService;
 import org.ballerinalang.langserver.extensions.ballerina.traces.BallerinaTraceService;
 import org.eclipse.lsp4j.jsonrpc.services.JsonDelegate;
@@ -29,6 +30,8 @@ import org.eclipse.lsp4j.services.LanguageServer;
  * @since 0.981.2
  */
 public interface ExtendedLanguageServer extends LanguageServer {
+    @JsonDelegate
+    BallerinaProjectService getBallerinaProjectService();
     @JsonDelegate
     BallerinaDocumentService getBallerinaDocumentService();
     @JsonDelegate

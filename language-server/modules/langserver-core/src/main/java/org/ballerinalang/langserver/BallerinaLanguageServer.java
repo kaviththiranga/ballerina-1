@@ -31,6 +31,8 @@ import org.ballerinalang.langserver.extensions.ballerina.document.BallerinaDocum
 import org.ballerinalang.langserver.extensions.ballerina.document.BallerinaDocumentServiceImpl;
 import org.ballerinalang.langserver.extensions.ballerina.example.BallerinaExampleService;
 import org.ballerinalang.langserver.extensions.ballerina.example.BallerinaExampleServiceImpl;
+import org.ballerinalang.langserver.extensions.ballerina.project.BallerinaProjectService;
+import org.ballerinalang.langserver.extensions.ballerina.project.BallerinaProjectServiceImpl;
 import org.ballerinalang.langserver.extensions.ballerina.symbol.BallerinaSymbolService;
 import org.ballerinalang.langserver.extensions.ballerina.symbol.BallerinaSymbolServiceImpl;
 import org.ballerinalang.langserver.extensions.ballerina.traces.BallerinaTraceService;
@@ -69,6 +71,7 @@ public class BallerinaLanguageServer extends AbstractExtendedLanguageServer
     private final TextDocumentService textService;
     private final WorkspaceService workspaceService;
     private final BallerinaDocumentService ballerinaDocumentService;
+    private final BallerinaProjectService ballerinaProjectService;
     private final BallerinaConnectorService ballerinaConnectorService;
     private final BallerinaExampleService ballerinaExampleService;
     private final BallerinaTraceService ballerinaTraceService;
@@ -85,6 +88,7 @@ public class BallerinaLanguageServer extends AbstractExtendedLanguageServer
         this.textService = new BallerinaTextDocumentService(this, workspaceManager, this.serverContext);
         this.workspaceService = new BallerinaWorkspaceService(this, workspaceManager, this.serverContext);
         this.ballerinaDocumentService = new BallerinaDocumentServiceImpl(workspaceManager, this.serverContext);
+        this.ballerinaProjectService = new BallerinaProjectServiceImpl(workspaceManager, this.serverContext);
         this.ballerinaConnectorService = new BallerinaConnectorServiceImpl(this.serverContext);
         this.ballerinaExampleService = new BallerinaExampleServiceImpl(this.serverContext);
         this.ballerinaTraceService = new BallerinaTraceServiceImpl(this);
@@ -178,6 +182,11 @@ public class BallerinaLanguageServer extends AbstractExtendedLanguageServer
 
     public WorkspaceService getWorkspaceService() {
         return this.workspaceService;
+    }
+
+    @Override
+    public BallerinaProjectService getBallerinaProjectService() {
+        return this.ballerinaProjectService;
     }
 
     public BallerinaDocumentService getBallerinaDocumentService() {
